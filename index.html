@@ -312,18 +312,8 @@
       gap: 40px;
     }
     .signature > div { text-align: center; flex: 1; }
-     /* Khoảng trống để ký tên (không có gạch dưới) */
-.signature .sign-space {
-  height: 30px;  /* điều chỉnh theo ý muốn */
-  margin: 4px 0 6px 0;
-}
+    .signature .sign-space { height: 30px; margin: 4px 0 6px 0; }
 
-@media print {
-  .signature .sign-space {
-    height: 20px !important;
-    margin: 2px 0 4px 0 !important;
-  }
-}
     /* ---------- Print ---------- */
     @media print {
       body { background: white; padding: 0; margin: 0; }
@@ -396,10 +386,9 @@
         flex: 1 !important;
         text-align: center !important;
       }
-      .signature .name-line {
-        height: 30px !important;
-        border-bottom: 1px solid #000 !important;
-        margin: 0 10px 4px 10px !important;
+      .signature .sign-space {
+        height: 20px !important;
+        margin: 2px 0 4px 0 !important;
       }
       .signature div div:first-child {
         font-size: 12px !important;
@@ -552,7 +541,7 @@
   </div>
 
   <div style="text-align:center; margin-top:40px; color:#94a3b8; font-size:13px;" class="no-print">
-    @ Copyright Võ Thanh Đậm 2026. Dữ liệu lưu trữ cục bộ. Xuất/Nhập JSON để sao lưu.
+    @Copyright Võ Thanh Đậm 2026 - Dữ liệu lưu trữ cục bộ. Xuất/Nhập JSON để sao lưu.
   </div>
 </div>
 
@@ -562,26 +551,19 @@
   // ============================================================
   const STORAGE_KEY = 'khhdgd_data';
 
+  // HÀM LOẠI BỎ SỐ CUỐI CỦA TÊN MÔN (GDTC 1 -> GDTC, Toán 2 -> Toán)
+  function removeNumberFromSubject(subject) {
+    if (!subject) return subject;
+    return subject.replace(/\s*\d+$/, '');
+  }
+
   // ============================================================
   //  HÀM TẠO DỮ LIỆU MẪU (PPCT)
   // ============================================================
   function generateSamplePPCT() {
-    // Đây là dữ liệu mẫu cho các môn GDTC, Tin học, Công nghệ, Khoa học, Toán, Tiếng Việt
-    // cho các khối 1-5, từ tuần 1 đến 35 (mỗi tuần 1-2 tiết cho mỗi môn)
-    // Tôi sẽ tạo khoảng 400-500 dòng để đủ minh họa
     const sample = [];
     let id = 1;
 
-    // Danh sách các môn theo khối
-    const subjects = {
-      1: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tiếng việt 4', 'Tiếng việt 5', 'Tiếng việt 6', 'Tiếng việt 7', 'Tiếng việt 8', 'Tiếng việt 9', 'Tiếng việt 0', 'Tiếng việt A', 'Tiếng việt B', 'TNXH 1', 'TNXH 2', 'SHDC 1', 'HĐGDCĐ 1', 'SHL 1', 'Đạo đức 1', 'Âm nhạc 1', 'Mỹ thuật 1', 'LTTV 1', 'LTT 1'],
-      2: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tiếng việt 4', 'Tiếng việt 5', 'Tiếng việt 6', 'Tiếng việt 7', 'Tiếng việt 8', 'Tiếng việt 9', 'Tiếng việt 0', 'TNXH 1', 'TNXH 2', 'SHDC 1', 'HĐGDCĐ 1', 'SHL 1', 'Đạo đức 1', 'Âm nhạc 1', 'Mỹ thuật 1', 'LTTV 1', 'LTT 1'],
-      3: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tiếng việt 4', 'Tiếng việt 5', 'Tiếng việt 6', 'Tiếng việt 7', 'TNXH 1', 'TNXH 2', 'SHDC 1', 'HĐGDCĐ 1', 'SHL 1', 'Đạo đức 1', 'Âm nhạc 1', 'Mỹ thuật 1', 'Công nghệ 1', 'Tin học 1', 'LTTV 1', 'LTT 1', 'Tiếng anh 1', 'Tiếng anh 2', 'Tiếng anh 3', 'Tiếng anh 4'],
-      4: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tiếng việt 4', 'Tiếng việt 5', 'Tiếng việt 6', 'Tiếng việt 7', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2', 'SHDC 1', 'HĐGDCĐ 1', 'SHL 1', 'Đạo đức 1', 'Âm nhạc 1', 'Mỹ thuật 1', 'Công nghệ 1', 'Tin học 1', 'LTTV 1', 'LTT 1', 'Tiếng anh 1', 'Tiếng anh 2', 'Tiếng anh 3', 'Tiếng anh 4'],
-      5: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tiếng việt 4', 'Tiếng việt 5', 'Tiếng việt 6', 'Tiếng việt 7', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2', 'SHDC 1', 'HĐGDCĐ 1', 'SHL 1', 'Đạo đức 1', 'Âm nhạc 1', 'Mỹ thuật 1', 'Công nghệ 1', 'Tin học 1', 'LTTV 1', 'LTT 1', 'Tiếng anh 1', 'Tiếng anh 2', 'Tiếng anh 3', 'Tiếng anh 4']
-    };
-
-    // Tạo dữ liệu cho mỗi môn trong mỗi khối (chỉ lấy một vài môn chính để tiết kiệm)
     const mainSubjects = {
       1: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
       2: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
@@ -590,14 +572,12 @@
       5: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2']
     };
 
-    // Duyệt qua từng khối và môn
     for (let grade = 1; grade <= 5; grade++) {
       const subjectList = mainSubjects[grade] || [];
       for (let sub of subjectList) {
-        // Số tiết mỗi tuần (mặc định 1, một số môn có 2 tiết)
         let periodsPerWeek = 1;
         if (sub.startsWith('Toán') || sub.startsWith('Tiếng việt') || sub.startsWith('GDTC')) {
-          periodsPerWeek = 2; // giả định 2 tiết/tuần
+          periodsPerWeek = 2;
         }
         if (sub.startsWith('Tin học') || sub.startsWith('Công nghệ')) {
           periodsPerWeek = 1;
@@ -606,12 +586,9 @@
           periodsPerWeek = 2;
         }
 
-        // Tạo dữ liệu từ tuần 1 đến 35
         for (let week = 1; week <= 35; week++) {
           for (let t = 1; t <= periodsPerWeek; t++) {
-            const ppct = t; // PPCT = số thứ tự tiết trong tuần
-            const subjectName = sub; // VD: "Toán 1"
-            // Tạo tên bài học giả định
+            const ppct = t;
             let lesson = `Bài ${week}: Nội dung bài học ${sub} tuần ${week} tiết ${ppct}`;
             if (sub.startsWith('GDTC')) {
               lesson = `Bài ${week}: Đội hình đội ngũ - Tiết ${ppct}`;
@@ -628,13 +605,12 @@
             } else if (sub.startsWith('LSĐL')) {
               lesson = `Bài ${week}: Lịch sử và Địa lý - Tiết ${ppct}`;
             }
-            // Gán stem ngẫu nhiên (có thể để trống)
             const stem = (week % 3 === 0) ? 'Stem:Bài ' + (week+1) : '';
             sample.push({
               id: id++,
               week: week,
               ppct: ppct,
-              subject: subjectName,
+              subject: sub,
               grade: grade,
               lesson: lesson,
               stem: stem
@@ -932,14 +908,10 @@
     renderPPCT();
   }
 
-  // ============================================================
-  //  HÀM TẠO DỮ LIỆU MẪU (gọi từ nút)
-  // ============================================================
   function loadSampleData() {
     if (!confirm('Thao tác này sẽ thêm dữ liệu mẫu vào PPCT hiện tại. Bạn có muốn tiếp tục?')) return;
     const data = loadData();
     const sample = generateSamplePPCT();
-    // Lọc những dòng chưa có trong data (theo id hoặc theo week, subject, grade, ppct)
     let added = 0;
     sample.forEach(s => {
       const exist = data.ppct.find(p => p.week === s.week && p.subject === s.subject && p.grade === s.grade && p.ppct === s.ppct);
@@ -1114,7 +1086,7 @@
   }
 
   // ============================================================
-  //  TAB: KẾ HOẠCH TUẦN
+  //  TAB: KẾ HOẠCH TUẦN (LOẠI BỎ SỐ TRONG TÊN MÔN KHI HIỂN THỊ)
   // ============================================================
   function loadWeekSelect() {
     const sel = document.getElementById('weekSelect');
@@ -1161,7 +1133,6 @@
     const data = loadData();
     const range = getWeekRange(week);
 
-    // Ngày lập kế hoạch = ngày bắt đầu tuần - 7 ngày
     const startDate = new Date(range.start);
     const planDate = new Date(startDate);
     planDate.setDate(planDate.getDate() - 7);
@@ -1233,7 +1204,9 @@
             pp.grade === t.grade
           );
           const lessonName = ppctItem ? ppctItem.lesson : '';
-          const monLop = `${t.subject} - ${t.class}`;
+          // Loại bỏ số trong tên môn để hiển thị
+          const displaySubject = removeNumberFromSubject(t.subject);
+          const monLop = `${displaySubject} - ${t.class}`;
           content = `<div class="cell-content"><div class="mon-lop">${monLop}</div><div class="bai-hoc">${lessonName}</div></div>`;
         } else {
           content = '<span style="color:#94a3b8;font-size:12px;">(trống)</span>';
@@ -1246,12 +1219,14 @@
 
     html += `</tbody></table>`;
 
-    // Tổng hợp
+    // Tổng hợp - gộp các môn cùng loại (bỏ số)
     const countMap = {};
-    tkbs.forEach(t => { if (t.subject) {
-      const key = t.subject;
-      countMap[key] = (countMap[key] || 0) + 1;
-    }});
+    tkbs.forEach(t => {
+      if (t.subject) {
+        const key = removeNumberFromSubject(t.subject);
+        countMap[key] = (countMap[key] || 0) + 1;
+      }
+    });
     const total = tkbs.filter(t => t.subject).length;
     let summaryHtml = `<div class="summary-box"><strong>Tổng hợp số tiết trong tuần ${week}:</strong> <span style="font-weight:700;color:#2563eb;">${total} tiết</span><br>`;
     if (Object.keys(countMap).length > 0) {
@@ -1263,46 +1238,46 @@
     }
     summaryHtml += '</div>';
 
-    // Bảng tổng hợp chi tiết
+    // Bảng tổng hợp chi tiết (các mục cố định)
     const summaryTable = `
       <div class="summary-box" style="margin-top:12px;">
         <table>
           <thead><tr><th>TT</th><th>Nội dung</th><th>Số lượng tiết học</th><th>Ghi chú</th></tr></thead>
           <tbody>
             <tr><td>1</td><td>Phòng máy</td><td>3</td><td></td></tr>
-            <tr><td>2</td><td>Công nghệ</td><td>${countMap['Công nghệ 1'] || 0}</td><td></td></tr>
-            <tr><td>3</td><td>Tin học</td><td>${countMap['Tin học 1'] || 0}</td><td></td></tr>
-            <tr><td>4</td><td>Đạo đức</td><td>${countMap['Đạo đức 1'] || 0}</td><td></td></tr>
-            <tr><td>5</td><td>LTTV</td><td>${countMap['LTTV 1'] || 0}</td><td></td></tr>
+            <tr><td>2</td><td>Công nghệ</td><td>${countMap['Công nghệ'] || 0}</td><td></td></tr>
+            <tr><td>3</td><td>Tin học</td><td>${countMap['Tin học'] || 0}</td><td></td></tr>
+            <tr><td>4</td><td>Đạo đức</td><td>${countMap['Đạo đức'] || 0}</td><td></td></tr>
+            <tr><td>5</td><td>LTTV</td><td>${countMap['LTTV'] || 0}</td><td></td></tr>
             <tr><td colspan="2"><strong>Tổng số</strong></td><td><strong>${total} tiết/tuần</strong></td><td></td></tr>
           </tbody>
         </table>
       </div>
     `;
 
-    // Chữ ký hàng ngang (đã được style sẵn với flex)
-  const signHtml = `
-  <div class="signature">
-    <div>
-      <div style="font-weight:700;">P.HIỆU TRƯỞNG</div>
-      <div class="sign-space"></div>
-      <div style="font-size:13px;">..............</div>
-    </div>
-    <div>
-      <div style="font-weight:700;">P. TỔ TRƯỞNG</div>
-      <div class="sign-space"></div>
-      <div style="font-size:13px;">..............</div>
-    </div>
-    <div>
-      <div style="font-weight:700;">NGƯỜI LẬP KẾ HOẠCH</div>
-      <div class="sign-space"></div>
-      <div style="font-size:13px;">..............</div>
-    </div>
-  </div>
-  <p style="text-align:right; font-size:13px; margin-top:16px; color:#475569;">
-    ${planDateStr}
-  </p>
-`;
+    // Chữ ký hàng ngang (không có gạch dưới)
+    const signHtml = `
+      <div class="signature">
+        <div>
+          <div style="font-weight:700;">P.HIỆU TRƯỞNG</div>
+          <div class="sign-space"></div>
+          <div style="font-size:13px;">___________________</div>
+        </div>
+        <div>
+          <div style="font-weight:700;">P. TỔ TRƯỞNG</div>
+          <div class="sign-space"></div>
+          <div style="font-size:13px;">___________________</div>
+        </div>
+        <div>
+          <div style="font-weight:700;">NGƯỜI LẬP KẾ HOẠCH</div>
+          <div class="sign-space"></div>
+          <div style="font-size:13px;">${teacher.name || ''}</div>
+        </div>
+      </div>
+      <p style="text-align:right; font-size:13px; margin-top:16px; color:#475569;">
+        ${planDateStr}
+      </p>
+    `;
 
     document.getElementById('planContainer').innerHTML = html + summaryHtml + summaryTable + signHtml;
   }
