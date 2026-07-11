@@ -661,7 +661,6 @@
       <button class="btn btn-outline" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2);" onclick="exportData()">📥 Xuất JSON</button>
       <button class="btn btn-outline" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2);" onclick="document.getElementById('importJsonInput').click()">📤 Nhập JSON</button>
       <input type="file" id="importJsonInput" accept=".json" style="display:none" onchange="importData(event)">
-      <!-- Nút xóa dữ liệu đã lưu -->
       <button class="btn btn-danger" onclick="resetData()" style="background:#dc2626;color:white;">🗑️ Xóa dữ liệu</button>
     </div>
   </header>
@@ -1476,7 +1475,7 @@
 
     html += `</tbody></table>`;
 
-    // Tổng hợp - gộp các môn cùng loại (bỏ số)
+    // ----- THỐNG KÊ TỪ DỮ LIỆU THỰC TẾ -----
     const countMap = {};
     tkbs.forEach(t => {
       if (t.subject) {
@@ -1484,35 +1483,44 @@
         countMap[key] = (countMap[key] || 0) + 1;
       }
     });
-    const total = tkbs.filter(t => t.subject).length;
+    const total = tkbs.filter(t => t.subject).length; // số tiết có môn
+
+    // Bảng tổng hợp đầu tiên
     let summaryHtml = `<div class="summary-box"><strong>Tổng hợp số tiết trong tuần ${week}:</strong> <span style="font-weight:700;color:#2563eb;">${total} tiết</span><br>`;
-    if (Object.keys(countMap).length > 0) {
-      const parts = [];
-      for (const [subject, count] of Object.entries(countMap)) {
-        parts.push(`${subject}: ${count} tiết`);
-      }
-      summaryHtml += parts.join('; ');
+    const parts = [];
+    for (const [subject, count] of Object.entries(countMap)) {
+      parts.push(`${subject}: ${count} tiết`);
     }
+    summaryHtml += parts.join('; ');
     summaryHtml += '</div>';
 
-    // Bảng tổng hợp chi tiết (các mục cố định)
+    // Bảng chi tiết TT – Nội dung – Số lượng (tự động, có thêm dòng Phòng máy)
+    let detailRows = '';
+    let idx = 1;
+    // Luôn thêm dòng Phòng máy với 3 tiết
+    detailRows += `<tr><td>${idx}</td><td>Phòng máy</td><td>3</td><td></td></tr>`;
+    idx++;
+    // Các môn học (sắp xếp theo tên)
+    const subjectKeys = Object.keys(countMap).sort();
+    subjectKeys.forEach(key => {
+      detailRows += `<tr><td>${idx}</td><td>${key}</td><td>${countMap[key]}</td><td></td></tr>`;
+      idx++;
+    });
+    const totalWithLab = total + 3; // tổng bao gồm phòng máy
+
     const summaryTable = `
       <div class="summary-box" style="margin-top:12px;">
         <table>
           <thead><tr><th>TT</th><th>Nội dung</th><th>Số lượng tiết học</th><th>Ghi chú</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td>Phòng máy</td><td>3</td><td></td></tr>
-            <tr><td>2</td><td>Công nghệ</td><td>${countMap['Công nghệ'] || 0}</td><td></td></tr>
-            <tr><td>3</td><td>Tin học</td><td>${countMap['Tin học'] || 0}</td><td></td></tr>
-            <tr><td>4</td><td>Đạo đức</td><td>${countMap['Đạo đức'] || 0}</td><td></td></tr>
-            <tr><td>5</td><td>LTTV</td><td>${countMap['LTTV'] || 0}</td><td></td></tr>
-            <tr><td colspan="2"><strong>Tổng số</strong></td><td><strong>${total} tiết/tuần</strong></td><td></td></tr>
+            ${detailRows}
+            <tr><td colspan="2"><strong>Tổng số</strong></td><td><strong>${totalWithLab} tiết/tuần</strong></td><td></td></tr>
           </tbody>
         </table>
       </div>
     `;
 
-    // Chữ ký hàng ngang (không có gạch dưới)
+    // Chữ ký hàng ngang
     const signHtml = `
       <div class="signature">
         <div>
