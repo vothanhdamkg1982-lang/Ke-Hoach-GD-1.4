@@ -311,7 +311,16 @@
     if (data.timetable) await supabase.from('khgd_timetable').upsert(data.timetable);
     if (data.ppct) await supabase.from('khgd_ppct').upsert(data.ppct);
     if (data.teachers) await supabase.from('khgd_teachers').upsert(data.teachers);
-    if (data.weeks) await supabase.from('khgd_weeks').upsert(data.weeks);
+    if (data.weeks) {
+  console.log("📤 Dữ liệu weeks đang gửi:", JSON.stringify(data.weeks, null, 2)); // In dữ liệu ra console
+  const { data: weekData, error: weekError } = await supabase.from('khgd_weeks').upsert(data.weeks, { onConflict: 'id' });
+  if (weekError) {
+    console.error("❌ Lỗi chi tiết bảng weeks:", weekError);
+    alert("Lỗi bảng khgd_weeks: " + weekError.message); // Popup báo lỗi cụ thể hơn
+  } else {
+    console.log("✅ Đã lưu bảng weeks thành công!");
+  }
+}
 
     // (Tùy chọn) Cứ giữ lại dòng localStorage này để làm dữ liệu dự phòng khi máy bị mất mạng
     // localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
