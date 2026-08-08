@@ -7,13 +7,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ======= TOÀN BỘ CSS CŨ GIỮ NGUYÊN ======= */
     @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Be Vietnam Pro', sans-serif; background: #f0f4f9; color: #1e293b; padding: 20px; min-height: 100vh; padding-top: 80px; /* Thêm khoảng trống cho Header Auth */ }
+    body { font-family: 'Be Vietnam Pro', sans-serif; background: #f0f4f9; color: #1e293b; padding: 20px; min-height: 100vh; padding-top: 80px; }
     .app { max-width: 1440px; margin: 0 auto; }
-    
-    /* === HEADER AUTH MỚI - GỌN GÀNG & CHUYÊN NGHIỆP === */
     .auth-header { position: fixed; top: 0; left: 0; width: 100%; height: 64px; background: #ffffff; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; justify-content: flex-end; align-items: center; padding: 0 32px; z-index: 9999; border-bottom: 1px solid #e2e8f0; }
     .auth-btn { padding: 8px 20px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; font-family: inherit; cursor: pointer; transition: 0.2s; }
     .auth-btn.login { background: #2563eb; color: white; box-shadow: 0 2px 6px rgba(37,99,235,0.2); }
@@ -22,8 +19,6 @@
     .auth-btn.logout:hover { background: #dc2626; }
     #user-info { display: none; align-items: center; gap: 16px; color: #1e293b; font-weight: 500; }
     #user-name { font-size: 14px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    /* === CÁC CSS CÒN LẠI CỦA APP (Giữ Nguyên) === */
     .app-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 20px; padding: 24px 32px; margin-bottom: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; box-shadow: 0 12px 40px rgba(15,23,42,0.25); }
     .app-header h1 { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px; }
     .app-header h1 span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 30px; font-size: 14px; font-weight: 500; }
@@ -143,7 +138,7 @@
 </head>
 <body>
 
-<!-- === HEADER AUTH MỚI (Vị trí trang trọng, góc phải đầu trang) === -->
+<!-- === HEADER AUTH === -->
 <header class="auth-header no-print">
     <div id="user-info">
         <span id="user-name">Người dùng</span>
@@ -162,7 +157,7 @@
       <button class="btn btn-outline" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2);" onclick="exportData()">📥 Xuất JSON</button>
       <button class="btn btn-outline" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2);" onclick="document.getElementById('importJsonInput').click()">📤 Nhập JSON</button>
       <input type="file" id="importJsonInput" accept=".json" style="display:none" onchange="importData(event)">
-      <button class="btn btn-success" id="btn-sync" onclick="syncAllToSupabase()" style="background:#16a34a;color:white; cursor:pointer;">☁️ Đồng bộ lên server</button>
+      <button class="btn btn-success" id="btn-sync" onclick="syncAllToSupabase()" style="background:#16a34a;color:white;">☁️ Đồng bộ lên server</button>
       <button class="btn btn-danger" onclick="resetData()" style="background:#dc2626;color:white;">🗑️ Xóa dữ liệu</button>
     </div>
   </header>
@@ -220,7 +215,7 @@
     <div class="form-row no-print">
       <div style="flex:2;">
         <label>Nhập / dán dữ liệu từ Excel (tab-separated)</label>
-        <textarea id="ppctImportArea" class="import-area" placeholder="Tuần	PPCT	Mã môn	Khối	Tên bài học	Stem&#10;1	1	Tin học 1	4	Bài 1...	"></textarea>
+        <textarea id="ppctImportArea" class="import-area" placeholder="Tuần\tPPCT\tMã môn\tKhối\tTên bài học\tStem"></textarea>
         <button class="btn btn-success" onclick="importPPCT()" style="margin-top:8px;">📥 Import PPCT</button>
         <button class="btn btn-outline" onclick="document.getElementById('ppctImportArea').value=''" style="margin-top:8px;">Xóa</button>
         <button class="btn btn-danger" onclick="clearAllPPCT()" style="margin-top:8px;margin-left:8px;">🗑️ Xóa toàn bộ</button>
@@ -276,725 +271,942 @@
 
 <script>
 // ================================================================
-// 0. CẤU HÌNH SUPABASE & BIẾN TOÀN CỤC
+// 1. CẤU HÌNH SUPABASE
 // ================================================================
 const SUPABASE_URL = 'https://ohmwphdeeldmlxuuknny.supabase.co';
-// 👇 **QUAN TRỌNG**: Thay thế chuỗi dưới đây bằng Anon Key thật của bạn trên Supabase Dashboard -> Settings -> API
+// 👇 Thay thế chuỗi sau bằng Anon Key thật của bạn
 const SUPABASE_ANON_KEY = 'sb_publishable_DgxnOXel9t7woqYrfInl5Q_YogcW--c'; 
 
-if (!window.supabase) {
-  window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-}
-let currentUser = null;
+let supabaseClient = null;
 
-// ================================================================
-// 1. XỬ LÝ ĐĂNG NHẬP / ĐĂNG XUẤT GOOGLE (Header Auth)
-// ================================================================
+function initSupabase() {
+    if (supabaseClient) return supabaseClient;
+    if (typeof supabase !== 'undefined') {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("✅ Supabase Client đã sẵn sàng!");
+        return supabaseClient;
+    }
+    return null;
+}
+initSupabase();
+
 const loginBtn = document.getElementById('btn-login');
 const logoutBtn = document.getElementById('btn-logout');
 const userInfo = document.getElementById('user-info');
 const userName = document.getElementById('user-name');
+let currentUser = null;
 
 async function handleGoogleLogin() {
-  const { error } = await window.supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin
-    }
-  });
-  if (error) alert('Lỗi đăng nhập: ' + error.message);
+    const client = initSupabase();
+    if (!client) { alert("⚠️ Vui lòng tải lại trang (F5) và đợi 2 giây rồi thử lại."); return; }
+    const { error } = await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+    });
+    if (error) alert('Lỗi đăng nhập: ' + error.message);
 }
 
 async function handleLogout() {
-  const { error } = await window.supabase.auth.signOut();
-  if (error) alert('Lỗi đăng xuất: ' + error.message);
-  else {
-    currentUser = null;
-    updateUIState(null);
-    loadAll(); // Quay về giao diện local
-  }
+    const client = initSupabase();
+    if (!client) return;
+    const { error } = await client.auth.signOut();
+    if (error) alert('Lỗi đăng xuất: ' + error.message);
+    else { updateUIState(null); loadAll(); }
 }
 
 function updateUIState(user) {
-  currentUser = user;
-  if (user) {
-    userInfo.style.display = 'flex';
-    loginBtn.style.display = 'none';
-    logoutBtn.style.display = 'block';
-    userName.textContent = user.user_metadata?.full_name || user.email;
-    document.getElementById('btn-sync').style.opacity = '1';
-    document.getElementById('btn-sync').style.cursor = 'pointer';
-  } else {
-    userInfo.style.display = 'none';
-    loginBtn.style.display = 'block';
-    logoutBtn.style.display = 'none';
-    document.getElementById('btn-sync').style.opacity = '0.5';
-    document.getElementById('btn-sync').style.cursor = 'not-allowed';
-  }
+    currentUser = user;
+    if (user) {
+        userInfo.style.display = 'flex';
+        loginBtn.style.display = 'none';
+        logoutBtn.style.display = 'block';
+        userName.textContent = user.user_metadata?.full_name || user.email;
+        document.getElementById('btn-sync').style.opacity = '1';
+        document.getElementById('btn-sync').style.cursor = 'pointer';
+    } else {
+        userInfo.style.display = 'none';
+        loginBtn.style.display = 'block';
+        logoutBtn.style.display = 'none';
+        document.getElementById('btn-sync').style.opacity = '0.5';
+        document.getElementById('btn-sync').style.cursor = 'not-allowed';
+    }
 }
-
 loginBtn.addEventListener('click', handleGoogleLogin);
 logoutBtn.addEventListener('click', handleLogout);
 
 // ================================================================
-// 2. DỮ LIỆU CỤC BỘ (localStorage)
+// 2. DỮ LIỆU CỤC BỘ (LocalStorage)
 // ================================================================
 const STORAGE_KEY = 'khhdgd_data';
 
 function getDefaultData() {
-  return {
-    teacher: { unit: '', school: '', name: '', subject: '', year: '' },
-    ppct: [],
-    timetable: [],
-    weeks: Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }))
-  };
+    return {
+        teacher: { unit: '', school: '', name: '', subject: '', year: '' },
+        ppct: [],
+        timetable: [],
+        weeks: Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }))
+    };
 }
 
 function loadData() {
-  let raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    const def = getDefaultData();
-    def.weeks = autoGenerateWeeks(def.weeks);
-    saveData(def);
-    return def;
-  }
-  try { return JSON.parse(raw); } catch { return getDefaultData(); }
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+        const def = getDefaultData();
+        def.weeks = autoGenerateWeeks(def.weeks);
+        saveData(def);
+        return def;
+    }
+    try { return JSON.parse(raw); } catch { return getDefaultData(); }
 }
 
 function saveData(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  const badge = document.getElementById('ppctBadge');
-  if (badge) badge.textContent = data.ppct.length;
-  showAutoSaveMsg();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const badge = document.getElementById('ppctBadge');
+    if (badge) badge.textContent = data.ppct.length;
+    showAutoSaveMsg();
 }
 
 function showAutoSaveMsg() {
-  const existing = document.querySelector('.toast-save-msg');
-  if (existing) existing.remove();
-  const msg = document.createElement('div');
-  msg.className = 'toast-save-msg';
-  msg.textContent = '💾 Đã lưu tự động';
-  msg.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2563eb; color:white; padding:8px 16px; border-radius:30px; font-weight:600; z-index:9999; opacity:0.9; transition:0.3s;';
-  document.body.appendChild(msg);
-  setTimeout(() => { msg.style.opacity = '0'; setTimeout(() => msg.remove(), 500); }, 1500);
+    const existing = document.querySelector('.toast-save-msg');
+    if (existing) existing.remove();
+    const msg = document.createElement('div');
+    msg.className = 'toast-save-msg';
+    msg.textContent = '💾 Đã lưu tự động';
+    msg.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2563eb; color:white; padding:8px 16px; border-radius:30px; font-weight:600; z-index:9999; opacity:0.9; transition:0.3s;';
+    document.body.appendChild(msg);
+    setTimeout(() => { msg.style.opacity = '0'; setTimeout(() => msg.remove(), 500); }, 1500);
 }
 
 function autoGenerateWeeks(weeks) {
-  const result = [];
-  for (let i=0; i<weeks.length; i++) {
-    let start = weeks[i].start;
-    let end = weeks[i].end;
-    if (i===0 && !start) start = '2026-09-07';
-    if (i>0 && !start) {
-      const prevStart = result[i-1].start;
-      if (prevStart) {
-        const d = new Date(prevStart);
-        d.setDate(d.getDate() + 7);
-        start = d.toISOString().slice(0,10);
-      }
+    const result = [];
+    for (let i=0; i<weeks.length; i++) {
+        let start = weeks[i].start;
+        let end = weeks[i].end;
+        if (i===0 && !start) start = '2026-09-07';
+        if (i>0 && !start) {
+            const prevStart = result[i-1].start;
+            if (prevStart) {
+                const d = new Date(prevStart);
+                d.setDate(d.getDate() + 7);
+                start = d.toISOString().slice(0,10);
+            }
+        }
+        if (start && !end) {
+            const d = new Date(start);
+            d.setDate(d.getDate() + 4);
+            end = d.toISOString().slice(0,10);
+        }
+        result.push({ week: weeks[i].week, start, end });
     }
-    if (start && !end) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + 4);
-      end = d.toISOString().slice(0,10);
-    }
-    result.push({ week: weeks[i].week, start, end });
-  }
-  return result;
+    return result;
 }
 
 function getNextId(data) {
-  return data.ppct.reduce((m, p) => Math.max(m, p.id || 0), 0) + 1;
+    return data.ppct.reduce((m, p) => Math.max(m, p.id || 0), 0) + 1;
 }
 
 // ================================================================
-// 3. TẤT CẢ CÁC HÀM RENDER (Giữ nguyên gốc)
+// 3. TẤT CẢ CÁC HÀM RENDER & IMPORT/EXPORT (FULL CODE)
 // ================================================================
 function loadTeacherInfo() {
-  const data = loadData();
-  document.getElementById('teacherUnit').value = data.teacher.unit || '';
-  document.getElementById('teacherSchool').value = data.teacher.school || '';
-  document.getElementById('teacherName').value = data.teacher.name || '';
-  document.getElementById('teacherSubject').value = data.teacher.subject || '';
-  document.getElementById('teacherYear').value = data.teacher.year || '';
+    const data = loadData();
+    document.getElementById('teacherUnit').value = data.teacher.unit || '';
+    document.getElementById('teacherSchool').value = data.teacher.school || '';
+    document.getElementById('teacherName').value = data.teacher.name || '';
+    document.getElementById('teacherSubject').value = data.teacher.subject || '';
+    document.getElementById('teacherYear').value = data.teacher.year || '';
 }
 
 let ppctPage = 0;
 const PPCT_PAGE_SIZE = 100;
 
 function getFilteredPPCT(data) {
-  const subject = document.getElementById('filterSubject').value;
-  const grade = document.getElementById('filterGrade').value;
-  const week = document.getElementById('filterWeek').value;
-  let list = data.ppct;
-  if (subject) list = list.filter(p => p.subject === subject);
-  if (grade) list = list.filter(p => p.grade == grade);
-  if (week) list = list.filter(p => p.week == week);
-  return list;
+    const subject = document.getElementById('filterSubject').value;
+    const grade = document.getElementById('filterGrade').value;
+    const week = document.getElementById('filterWeek').value;
+    let list = data.ppct;
+    if (subject) list = list.filter(p => p.subject === subject);
+    if (grade) list = list.filter(p => p.grade == grade);
+    if (week) list = list.filter(p => p.week == week);
+    return list;
 }
 
 function renderPPCT() {
-  const data = loadData();
-  const filtered = getFilteredPPCT(data);
-  const total = filtered.length;
-  const totalPages = Math.ceil(total / PPCT_PAGE_SIZE) || 1;
-  if (ppctPage >= totalPages) ppctPage = totalPages - 1;
-  if (ppctPage < 0) ppctPage = 0;
-  const start = ppctPage * PPCT_PAGE_SIZE;
-  const end = Math.min(start + PPCT_PAGE_SIZE, total);
-  const pageItems = filtered.slice(start, end);
+    const data = loadData();
+    const filtered = getFilteredPPCT(data);
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / PPCT_PAGE_SIZE) || 1;
+    if (ppctPage >= totalPages) ppctPage = totalPages - 1;
+    if (ppctPage < 0) ppctPage = 0;
+    const start = ppctPage * PPCT_PAGE_SIZE;
+    const end = Math.min(start + PPCT_PAGE_SIZE, total);
+    const pageItems = filtered.slice(start, end);
 
-  const tbody = document.getElementById('ppctBody');
-  tbody.innerHTML = '';
-  pageItems.forEach(p => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="editable-cell" onclick="editField(this, 'week', ${p.id})">${p.week}</td>
-      <td class="editable-cell" onclick="editField(this, 'ppct', ${p.id})">${p.ppct}</td>
-      <td class="editable-cell" onclick="editField(this, 'subject', ${p.id})">${p.subject}</td>
-      <td class="editable-cell" onclick="editField(this, 'grade', ${p.id})">${p.grade}</td>
-      <td class="editable-cell" onclick="editField(this, 'lesson', ${p.id})">${p.lesson}</td>
-      <td class="editable-cell" onclick="editField(this, 'stem', ${p.id})">${p.stem || ''}</td>
-      <td class="no-print">
-        <button class="btn btn-danger btn-sm" onclick="deletePPCT(${p.id})">✕</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+    const tbody = document.getElementById('ppctBody');
+    tbody.innerHTML = '';
+    pageItems.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td class="editable-cell" onclick="editField(this, 'week', ${p.id})">${p.week}</td>
+        <td class="editable-cell" onclick="editField(this, 'ppct', ${p.id})">${p.ppct}</td>
+        <td class="editable-cell" onclick="editField(this, 'subject', ${p.id})">${p.subject}</td>
+        <td class="editable-cell" onclick="editField(this, 'grade', ${p.id})">${p.grade}</td>
+        <td class="editable-cell" onclick="editField(this, 'lesson', ${p.id})">${p.lesson}</td>
+        <td class="editable-cell" onclick="editField(this, 'stem', ${p.id})">${p.stem || ''}</td>
+        <td class="no-print">
+          <button class="btn btn-danger btn-sm" onclick="deletePPCT(${p.id})">✕</button>
+        </td>
+      `;
+        tbody.appendChild(tr);
+    });
 
-  document.getElementById('ppctCount').textContent = `Hiển thị ${start+1}-${end} / ${total} dòng`;
-  document.getElementById('ppctPageInfo').textContent = `Trang ${ppctPage+1}/${totalPages}`;
-  updatePPCTFilters(data);
+    document.getElementById('ppctCount').textContent = `Hiển thị ${start+1}-${end} / ${total} dòng`;
+    document.getElementById('ppctPageInfo').textContent = `Trang ${ppctPage+1}/${totalPages}`;
+    updatePPCTFilters(data);
 }
 
 function updatePPCTFilters(data) {
-  const subjects = [...new Set(data.ppct.map(p => p.subject))].sort();
-  const grades = [...new Set(data.ppct.map(p => p.grade))].sort((a,b)=>a-b);
-  const weeks = [...new Set(data.ppct.map(p => p.week))].sort((a,b)=>a-b);
+    const subjects = [...new Set(data.ppct.map(p => p.subject))].sort();
+    const grades = [...new Set(data.ppct.map(p => p.grade))].sort((a,b)=>a-b);
+    const weeks = [...new Set(data.ppct.map(p => p.week))].sort((a,b)=>a-b);
 
-  const selSubject = document.getElementById('filterSubject');
-  const selGrade = document.getElementById('filterGrade');
-  const selWeek = document.getElementById('filterWeek');
+    const selSubject = document.getElementById('filterSubject');
+    const selGrade = document.getElementById('filterGrade');
+    const selWeek = document.getElementById('filterWeek');
 
-  const curSub = selSubject.value, curGrade = selGrade.value, curWeek = selWeek.value;
-  selSubject.innerHTML = '<option value="">-- Tất cả môn --</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
-  selGrade.innerHTML = '<option value="">-- Tất cả khối --</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
-  selWeek.innerHTML = '<option value="">-- Tất cả tuần --</option>' + weeks.map(w => `<option value="${w}">${w}</option>`).join('');
-  selSubject.value = curSub; selGrade.value = curGrade; selWeek.value = curWeek;
+    const curSub = selSubject.value, curGrade = selGrade.value, curWeek = selWeek.value;
+    selSubject.innerHTML = '<option value="">-- Tất cả môn --</option>' + subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+    selGrade.innerHTML = '<option value="">-- Tất cả khối --</option>' + grades.map(g => `<option value="${g}">${g}</option>`).join('');
+    selWeek.innerHTML = '<option value="">-- Tất cả tuần --</option>' + weeks.map(w => `<option value="${w}">${w}</option>`).join('');
+    selSubject.value = curSub; selGrade.value = curGrade; selWeek.value = curWeek;
 }
 
 function changePPCTPage(dir) {
-  const data = loadData();
-  const filtered = getFilteredPPCT(data);
-  const totalPages = Math.ceil(filtered.length / PPCT_PAGE_SIZE) || 1;
-  ppctPage = Math.min(Math.max(ppctPage + dir, 0), totalPages - 1);
-  renderPPCT();
+    const data = loadData();
+    const filtered = getFilteredPPCT(data);
+    const totalPages = Math.ceil(filtered.length / PPCT_PAGE_SIZE) || 1;
+    ppctPage = Math.min(Math.max(ppctPage + dir, 0), totalPages - 1);
+    renderPPCT();
 }
 
 function deletePPCT(id) {
-  if (!confirm('Xóa dòng này?')) return;
-  const data = loadData();
-  data.ppct = data.ppct.filter(p => p.id !== id);
-  saveData(data);
-  renderPPCT();
+    if (!confirm('Xóa dòng này?')) return;
+    const data = loadData();
+    data.ppct = data.ppct.filter(p => p.id !== id);
+    saveData(data);
+    renderPPCT();
 }
 
 function addPPCTRow() {
-  const week = parseInt(document.getElementById('newWeek').value);
-  const ppct = parseInt(document.getElementById('newPpct').value);
-  const subject = document.getElementById('newSubject').value.trim();
-  const grade = parseInt(document.getElementById('newGrade').value);
-  const lesson = document.getElementById('newLesson').value.trim();
-  const stem = document.getElementById('newStem').value.trim();
-  if (!subject || !lesson || isNaN(week) || isNaN(ppct) || isNaN(grade)) return alert('Vui lòng điền đầy đủ.');
-  const data = loadData();
-  const id = getNextId(data);
-  data.ppct.push({ id, week, ppct, subject, grade, lesson, stem });
-  saveData(data);
-  renderPPCT();
-  document.getElementById('newWeek').value = week;
-  document.getElementById('newPpct').value = ppct + 1;
-  document.getElementById('newSubject').value = '';
-  document.getElementById('newLesson').value = '';
-  document.getElementById('newStem').value = '';
+    const week = parseInt(document.getElementById('newWeek').value);
+    const ppct = parseInt(document.getElementById('newPpct').value);
+    const subject = document.getElementById('newSubject').value.trim();
+    const grade = parseInt(document.getElementById('newGrade').value);
+    const lesson = document.getElementById('newLesson').value.trim();
+    const stem = document.getElementById('newStem').value.trim();
+    if (!subject || !lesson || isNaN(week) || isNaN(ppct) || isNaN(grade)) return alert('Vui lòng điền đầy đủ thông tin.');
+    const data = loadData();
+    const id = getNextId(data);
+    data.ppct.push({ id, week, ppct, subject, grade, lesson, stem });
+    saveData(data);
+    renderPPCT();
+    document.getElementById('newWeek').value = week;
+    document.getElementById('newPpct').value = ppct + 1;
+    document.getElementById('newSubject').value = '';
+    document.getElementById('newLesson').value = '';
+    document.getElementById('newStem').value = '';
 }
 
 function editField(cell, field, id) {
-  const currentValue = cell.textContent.trim();
-  const input = document.createElement('input');
-  input.type = (field === 'week' || field === 'ppct' || field === 'grade') ? 'number' : 'text';
-  input.value = currentValue;
-  input.style.width = '100%'; input.style.padding = '2px 4px'; input.style.border = '2px solid #2563eb'; input.style.borderRadius = '6px';
-  cell.innerHTML = '';
-  cell.appendChild(input);
-  input.focus();
-  input.select();
-  const save = () => {
-    const newVal = input.value.trim();
-    const data = loadData();
-    const item = data.ppct.find(p => p.id === id);
-    if (!item) return;
-    if (field === 'week' || field === 'ppct' || field === 'grade') {
-      const num = parseInt(newVal);
-      if (!isNaN(num)) item[field] = num;
-      else return;
-    } else {
-      item[field] = newVal;
-    }
-    saveData(data);
-    renderPPCT();
-  };
-  input.addEventListener('blur', save);
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { input.blur(); }
-    if (e.key === 'Escape') { renderPPCT(); }
-  });
+    const currentValue = cell.textContent.trim();
+    const input = document.createElement('input');
+    input.type = (field === 'week' || field === 'ppct' || field === 'grade') ? 'number' : 'text';
+    input.value = currentValue;
+    input.style.width = '100%';
+    input.style.padding = '2px 4px';
+    input.style.border = '2px solid #2563eb';
+    input.style.borderRadius = '6px';
+    cell.innerHTML = '';
+    cell.appendChild(input);
+    input.focus();
+    input.select();
+
+    const save = () => {
+        const newVal = input.value.trim();
+        const data = loadData();
+        const item = data.ppct.find(p => p.id === id);
+        if (!item) return;
+        if (field === 'week' || field === 'ppct' || field === 'grade') {
+            const num = parseInt(newVal);
+            if (!isNaN(num)) item[field] = num;
+            else return;
+        } else {
+            item[field] = newVal;
+        }
+        saveData(data);
+        renderPPCT();
+    };
+
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { input.blur(); }
+        if (e.key === 'Escape') { renderPPCT(); }
+    });
 }
 
 function importPPCT() {
-  const text = document.getElementById('ppctImportArea').value;
-  if (!text.trim()) return alert('Vui lòng dán dữ liệu vào ô.');
-  const lines = text.split(/\n/).filter(line => line.trim() !== '');
-  const data = loadData();
-  let imported = 0, skipped = 0;
-  const errorLines = [];
-  lines.forEach((line, index) => {
-    let parts = line.split(/\t/).map(s => s.trim());
-    if (parts.length < 5) parts = line.split(/\s{2,}/).map(s => s.trim());
-    if (parts.length < 5) {
-      skipped++; errorLines.push(`Dòng ${index+1}: thiếu cột - "${line}"`); return;
+    const text = document.getElementById('ppctImportArea').value;
+    if (!text.trim()) return alert('Vui lòng dán dữ liệu vào ô.');
+    const lines = text.split(/\n/).filter(line => line.trim() !== '');
+    const data = loadData();
+    let imported = 0, skipped = 0;
+    const errorLines = [];
+    lines.forEach((line, index) => {
+        let parts = line.split(/\t/).map(s => s.trim());
+        if (parts.length < 5) parts = line.split(/\s{2,}/).map(s => s.trim());
+        if (parts.length < 5) {
+            skipped++;
+            errorLines.push(`Dòng ${index+1}: thiếu cột - "${line}"`);
+            return;
+        }
+        const week = parseInt(parts[0]);
+        const ppct = parseInt(parts[1]);
+        const subject = parts[2];
+        const grade = parseInt(parts[3]);
+        const lesson = parts[4];
+        const stem = (parts[5] || '').trim();
+        if (isNaN(week) || isNaN(ppct) || isNaN(grade) || !subject || !lesson) {
+            skipped++;
+            errorLines.push(`Dòng ${index+1}: dữ liệu không hợp lệ - "${line}"`);
+            return;
+        }
+        const id = getNextId(data);
+        data.ppct.push({ id, week, ppct, subject, grade, lesson, stem });
+        imported++;
+    });
+    saveData(data);
+    document.getElementById('ppctImportArea').value = '';
+
+    const errorDiv = document.getElementById('importErrors');
+    if (errorLines.length > 0) {
+        errorDiv.style.display = 'block';
+        errorDiv.innerHTML = `<div class="error-title">⚠️ Có ${errorLines.length} dòng bị lỗi (đã bỏ qua):</div>` +
+        errorLines.map(e => '• ' + e).join('\n');
+    } else {
+        errorDiv.style.display = 'none';
     }
-    const week = parseInt(parts[0]); const ppct = parseInt(parts[1]);
-    const subject = parts[2]; const grade = parseInt(parts[3]); const lesson = parts[4];
-    const stem = (parts[5] || '').trim();
-    if (isNaN(week) || isNaN(ppct) || isNaN(grade) || !subject || !lesson) {
-      skipped++; errorLines.push(`Dòng ${index+1}: dữ liệu không hợp lệ - "${line}"`); return;
-    }
-    const id = getNextId(data);
-    data.ppct.push({ id, week, ppct, subject, grade, lesson, stem });
-    imported++;
-  });
-  saveData(data);
-  document.getElementById('ppctImportArea').value = '';
-  const errorDiv = document.getElementById('importErrors');
-  if (errorLines.length > 0) {
-    errorDiv.style.display = 'block';
-    errorDiv.innerHTML = `<div class="error-title">⚠️ Có ${errorLines.length} dòng bị lỗi (đã bỏ qua):</div>` + errorLines.map(e => '• ' + e).join('\n');
-  } else errorDiv.style.display = 'none';
-  alert(`Đã import ${imported} dòng. Bỏ qua ${skipped} dòng không hợp lệ.`);
-  renderPPCT();
+    alert(`Đã import ${imported} dòng. Bỏ qua ${skipped} dòng không hợp lệ.`);
+    renderPPCT();
 }
 
 function clearAllPPCT() {
-  if (!confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu PPCT?')) return;
-  const data = loadData(); data.ppct = []; saveData(data); renderPPCT();
+    if (!confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu PPCT?')) return;
+    const data = loadData();
+    data.ppct = [];
+    saveData(data);
+    renderPPCT();
 }
 
 function loadSampleData() {
-  if (!confirm('Thao tác này sẽ thêm dữ liệu mẫu vào PPCT hiện tại. Bạn có muốn tiếp tục?')) return;
-  const data = loadData();
-  const sample = generateSamplePPCT();
-  let added = 0;
-  sample.forEach(s => {
-    const exist = data.ppct.find(p => p.week === s.week && p.subject === s.subject && p.grade === s.grade && p.ppct === s.ppct);
-    if (!exist) {
-      s.id = getNextId(data);
-      data.ppct.push(s);
-      added++;
-    }
-  });
-  saveData(data);
-  renderPPCT();
-  alert(`Đã thêm ${added} dòng mới. Tổng số dòng hiện tại: ${data.ppct.length}`);
+    if (!confirm('Thao tác này sẽ thêm dữ liệu mẫu vào PPCT hiện tại. Bạn có muốn tiếp tục?')) return;
+    const data = loadData();
+    const sample = generateSamplePPCT();
+    let added = 0;
+    sample.forEach(s => {
+        const exist = data.ppct.find(p => p.week === s.week && p.subject === s.subject && p.grade === s.grade && p.ppct === s.ppct);
+        if (!exist) {
+            s.id = getNextId(data);
+            data.ppct.push(s);
+            added++;
+        }
+    });
+    saveData(data);
+    renderPPCT();
+    alert(`Đã thêm ${added} dòng mới. Tổng số dòng hiện tại: ${data.ppct.length}`);
 }
 
 function generateSamplePPCT() {
-  const sample = [];
-  let id = 1;
-  const mainSubjects = { 1: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
-    2: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
-    3: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1'],
-    4: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2'],
-    5: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2']
-  };
-  for (let grade = 1; grade <= 5; grade++) {
-    const subjectList = mainSubjects[grade] || [];
-    for (let sub of subjectList) {
-      let periodsPerWeek = 1;
-      if (sub.startsWith('Toán') || sub.startsWith('Tiếng việt') || sub.startsWith('GDTC')) periodsPerWeek = 2;
-      if (sub.startsWith('Tin học') || sub.startsWith('Công nghệ')) periodsPerWeek = 1;
-      if (sub.startsWith('Khoa học') || sub.startsWith('LSĐL')) periodsPerWeek = 2;
-      for (let week = 1; week <= 35; week++) {
-        for (let t = 1; t <= periodsPerWeek; t++) {
-          const ppct = t;
-          let lesson = `Bài ${week}: Nội dung bài học ${sub} tuần ${week} tiết ${ppct}`;
-          if (sub.startsWith('GDTC')) lesson = `Bài ${week}: Đội hình đội ngũ - Tiết ${ppct}`;
-          else if (sub.startsWith('Tin học')) lesson = `Bài ${week}: Lý thuyết và thực hành Tin học - Tiết ${ppct}`;
-          else if (sub.startsWith('Công nghệ')) lesson = `Bài ${week}: Công nghệ trong đời sống - Tiết ${ppct}`;
-          else if (sub.startsWith('Toán')) lesson = `Bài ${week}: Luyện tập toán - Tiết ${ppct}`;
-          else if (sub.startsWith('Tiếng việt')) lesson = `Bài ${week}: Luyện đọc và viết - Tiết ${ppct}`;
-          else if (sub.startsWith('Khoa học')) lesson = `Bài ${week}: Khoa học tự nhiên - Tiết ${ppct}`;
-          else if (sub.startsWith('LSĐL')) lesson = `Bài ${week}: Lịch sử và Địa lý - Tiết ${ppct}`;
-          const stem = (week % 3 === 0) ? 'Stem:Bài ' + (week+1) : '';
-          sample.push({ id: id++, week, ppct, subject: sub, grade, lesson, stem });
+    const sample = [];
+    let id = 1;
+    const mainSubjects = {
+        1: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
+        2: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
+        3: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1'],
+        4: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2'],
+        5: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2']
+    };
+    for (let grade = 1; grade <= 5; grade++) {
+        const subjectList = mainSubjects[grade] || [];
+        for (let sub of subjectList) {
+            let periodsPerWeek = 1;
+            if (sub.startsWith('Toán') || sub.startsWith('Tiếng việt') || sub.startsWith('GDTC')) periodsPerWeek = 2;
+            if (sub.startsWith('Tin học') || sub.startsWith('Công nghệ')) periodsPerWeek = 1;
+            if (sub.startsWith('Khoa học') || sub.startsWith('LSĐL')) periodsPerWeek = 2;
+
+            for (let week = 1; week <= 35; week++) {
+                for (let t = 1; t <= periodsPerWeek; t++) {
+                    const ppct = t;
+                    let lesson = `Bài ${week}: Nội dung bài học ${sub} tuần ${week} tiết ${ppct}`;
+                    if (sub.startsWith('GDTC')) lesson = `Bài ${week}: Đội hình đội ngũ - Tiết ${ppct}`;
+                    else if (sub.startsWith('Tin học')) lesson = `Bài ${week}: Lý thuyết và thực hành Tin học - Tiết ${ppct}`;
+                    else if (sub.startsWith('Công nghệ')) lesson = `Bài ${week}: Công nghệ trong đời sống - Tiết ${ppct}`;
+                    else if (sub.startsWith('Toán')) lesson = `Bài ${week}: Luyện tập toán - Tiết ${ppct}`;
+                    else if (sub.startsWith('Tiếng việt')) lesson = `Bài ${week}: Luyện đọc và viết - Tiết ${ppct}`;
+                    else if (sub.startsWith('Khoa học')) lesson = `Bài ${week}: Khoa học tự nhiên - Tiết ${ppct}`;
+                    else if (sub.startsWith('LSĐL')) lesson = `Bài ${week}: Lịch sử và Địa lý - Tiết ${ppct}`;
+                    const stem = (week % 3 === 0) ? 'Stem:Bài ' + (week+1) : '';
+                    sample.push({ id: id++, week, ppct, subject: sub, grade, lesson, stem });
+                }
+            }
         }
-      }
     }
-  }
-  return sample;
+    return sample;
 }
 
 function renderTKB() {
-  const data = loadData();
-  const container = document.getElementById('tkbContainer');
-  container.innerHTML = '';
-  const subjectCodes = [...new Set(data.ppct.map(p => p.subject))].sort();
-  const table = document.createElement('table'); table.className = 'tkb-table';
-  const thead = document.createElement('thead');
-  const headerRow = document.createElement('tr');
-  ['Buổi', 'Tiết', ...['Hai', 'Ba', 'Tư', 'Năm', 'Sáu']].forEach(text => {
-    const th = document.createElement('th'); th.textContent = text; headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow); table.appendChild(thead);
-  const tbody = document.createElement('tbody');
-  const SESSIONS = ['Sáng', 'Chiều']; const PERIODS = [1,2,3,4,5,6,7]; const PERIOD_SESSION = [0,0,0,0,1,1,1];
-  PERIODS.forEach(period => {
-    const session = PERIOD_SESSION[period-1]; const sessionLabel = SESSIONS[session];
-    const tr = document.createElement('tr');
-    const buoiCell = document.createElement('td'); buoiCell.textContent = sessionLabel; buoiCell.className = 'buoi-label'; tr.appendChild(buoiCell);
-    const tietCell = document.createElement('td'); tietCell.textContent = period; tietCell.className = 'tiet-label'; tr.appendChild(tietCell);
-    ['Hai', 'Ba', 'Tư', 'Năm', 'Sáu'].forEach((day, dayIdx) => {
-      const cell = document.createElement('td');
-      const existing = data.timetable.find(t => t.day === dayIdx && t.session === session && t.period === period-1);
-      const contentDiv = document.createElement('div'); contentDiv.className = 'tkb-cell-content';
-      const selSubject = document.createElement('select');
-      const opt = document.createElement('option'); opt.value = ''; opt.textContent = '--'; selSubject.appendChild(opt);
-      subjectCodes.forEach(code => { const o = document.createElement('option'); o.value = code; o.textContent = code; selSubject.appendChild(o); });
-      if (existing) selSubject.value = existing.subject;
-      selSubject.onchange = function() { updateTKB(dayIdx, session, period-1, 'subject', this.value); };
-      contentDiv.appendChild(selSubject);
-      const selGrade = document.createElement('select');
-      for (let g=1; g<=5; g++) { const o = document.createElement('option'); o.value = g; o.textContent = g; selGrade.appendChild(o); }
-      if (existing) selGrade.value = existing.grade;
-      selGrade.onchange = function() { updateTKB(dayIdx, session, period-1, 'grade', parseInt(this.value)); };
-      contentDiv.appendChild(selGrade);
-      const inpClass = document.createElement('input'); inpClass.type = 'text'; inpClass.placeholder = 'Lớp';
-      if (existing) inpClass.value = existing.class || '';
-      inpClass.oninput = function() { updateTKB(dayIdx, session, period-1, 'class', this.value); };
-      contentDiv.appendChild(inpClass);
-      cell.appendChild(contentDiv); tr.appendChild(cell);
+    const data = loadData();
+    const container = document.getElementById('tkbContainer');
+    container.innerHTML = '';
+    const subjectCodes = [...new Set(data.ppct.map(p => p.subject))].sort();
+
+    const table = document.createElement('table');
+    table.className = 'tkb-table';
+
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    ['Buổi', 'Tiết', ...['Hai', 'Ba', 'Tư', 'Năm', 'Sáu']].forEach(text => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        headerRow.appendChild(th);
     });
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody); container.appendChild(table);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    const SESSIONS = ['Sáng', 'Chiều'];
+    const PERIODS = [1,2,3,4,5,6,7];
+    const PERIOD_SESSION = [0,0,0,0,1,1,1];
+
+    PERIODS.forEach(period => {
+        const session = PERIOD_SESSION[period-1];
+        const sessionLabel = SESSIONS[session];
+        const tr = document.createElement('tr');
+
+        const buoiCell = document.createElement('td');
+        buoiCell.textContent = sessionLabel;
+        buoiCell.className = 'buoi-label';
+        tr.appendChild(buoiCell);
+
+        const tietCell = document.createElement('td');
+        tietCell.textContent = period;
+        tietCell.className = 'tiet-label';
+        tr.appendChild(tietCell);
+
+        const DAYS = ['Hai', 'Ba', 'Tư', 'Năm', 'Sáu'];
+        DAYS.forEach((day, dayIdx) => {
+            const cell = document.createElement('td');
+            const existing = data.timetable.find(t => t.day === dayIdx && t.session === session && t.period === period-1);
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'tkb-cell-content';
+
+            const selSubject = document.createElement('select');
+            const opt = document.createElement('option');
+            opt.value = ''; opt.textContent = '--';
+            selSubject.appendChild(opt);
+            subjectCodes.forEach(code => {
+                const o = document.createElement('option');
+                o.value = code; o.textContent = code;
+                selSubject.appendChild(o);
+            });
+            if (existing) selSubject.value = existing.subject;
+            selSubject.onchange = function() {
+                updateTKB(dayIdx, session, period-1, 'subject', this.value);
+            };
+            contentDiv.appendChild(selSubject);
+
+            const selGrade = document.createElement('select');
+            for (let g=1; g<=5; g++) {
+                const o = document.createElement('option');
+                o.value = g; o.textContent = g;
+                selGrade.appendChild(o);
+            }
+            if (existing) selGrade.value = existing.grade;
+            selGrade.onchange = function() {
+                updateTKB(dayIdx, session, period-1, 'grade', parseInt(this.value));
+            };
+            contentDiv.appendChild(selGrade);
+
+            const inpClass = document.createElement('input');
+            inpClass.type = 'text';
+            inpClass.placeholder = 'Lớp';
+            if (existing) inpClass.value = existing.class || '';
+            inpClass.oninput = function() {
+                updateTKB(dayIdx, session, period-1, 'class', this.value);
+            };
+            contentDiv.appendChild(inpClass);
+
+            cell.appendChild(contentDiv);
+            tr.appendChild(cell);
+        });
+
+        tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    container.appendChild(table);
 }
 
 function updateTKB(day, session, period, field, value) {
-  const data = loadData();
-  let item = data.timetable.find(t => t.day === day && t.session === session && t.period === period);
-  if (!item) { item = { day, session, period, subject: '', grade: 1, class: '' }; data.timetable.push(item); }
-  item[field] = value; saveData(data);
+    const data = loadData();
+    let item = data.timetable.find(t => t.day === day && t.session === session && t.period === period);
+    if (!item) {
+        item = { day, session, period, subject: '', grade: 1, class: '' };
+        data.timetable.push(item);
+    }
+    item[field] = value;
+    saveData(data);
 }
 
 function renderWeeks() {
-  const data = loadData();
-  const tbody = document.getElementById('weeksBody');
-  tbody.innerHTML = '';
-  data.weeks.forEach((w, idx) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>Tuần ${w.week}</strong></td>
-      <td><input type="date" value="${w.start || ''}" data-idx="${idx}" data-field="start" onchange="updateWeek(${idx}, 'start', this.value)"></td>
-      <td><input type="date" value="${w.end || ''}" data-idx="${idx}" data-field="end" onchange="updateWeek(${idx}, 'end', this.value)"></td>`;
-    tbody.appendChild(tr);
-  });
+    const data = loadData();
+    const tbody = document.getElementById('weeksBody');
+    tbody.innerHTML = '';
+    data.weeks.forEach((w, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td><strong>Tuần ${w.week}</strong></td>
+        <td><input type="date" value="${w.start || ''}" data-idx="${idx}" data-field="start" onchange="updateWeek(${idx}, 'start', this.value)"></td>
+        <td><input type="date" value="${w.end || ''}" data-idx="${idx}" data-field="end" onchange="updateWeek(${idx}, 'end', this.value)"></td>
+      `;
+        tbody.appendChild(tr);
+    });
 }
 
 function updateWeek(idx, field, value) {
-  const data = loadData();
-  if (field === 'start' && value) {
-    const d = new Date(value); d.setDate(d.getDate() + 4);
-    data.weeks[idx].end = d.toISOString().slice(0,10);
-  }
-  data.weeks[idx][field] = value || null;
-  if (idx === 0 && value) {
-    let base = new Date(value);
-    for (let i=1; i<data.weeks.length; i++) {
-      const next = new Date(base); next.setDate(next.getDate() + 7);
-      data.weeks[i].start = next.toISOString().slice(0,10);
-      const end = new Date(next); end.setDate(end.getDate() + 4);
-      data.weeks[i].end = end.toISOString().slice(0,10);
-      base = next;
+    const data = loadData();
+    if (field === 'start' && value) {
+        const d = new Date(value);
+        d.setDate(d.getDate() + 4);
+        data.weeks[idx].end = d.toISOString().slice(0,10);
     }
-  }
-  saveData(data);
-  renderWeeks(); document.getElementById('weeksMsg').textContent = '✅ Đã cập nhật';
-  setTimeout(() => document.getElementById('weeksMsg').textContent = '', 2000);
-  renderPlan();
+    data.weeks[idx][field] = value || null;
+    if (idx === 0 && value) {
+        let base = new Date(value);
+        for (let i=1; i<data.weeks.length; i++) {
+            const next = new Date(base);
+            next.setDate(next.getDate() + 7);
+            data.weeks[i].start = next.toISOString().slice(0,10);
+            const end = new Date(next);
+            end.setDate(end.getDate() + 4);
+            data.weeks[i].end = end.toISOString().slice(0,10);
+            base = next;
+        }
+    }
+    saveData(data);
+    renderWeeks();
+    document.getElementById('weeksMsg').textContent = '✅ Đã cập nhật';
+    setTimeout(() => document.getElementById('weeksMsg').textContent = '', 2000);
+    renderPlan();
 }
 
-function saveWeeks() { document.getElementById('weeksMsg').textContent = '✅ Đã lưu'; setTimeout(() => document.getElementById('weeksMsg').textContent = '', 2000); }
+function saveWeeks() {
+    document.getElementById('weeksMsg').textContent = '✅ Đã lưu';
+    setTimeout(() => document.getElementById('weeksMsg').textContent = '', 2000);
+}
 
-// --- renderPlan ---
 function loadWeekSelect() {
-  const sel = document.getElementById('weekSelect'); sel.innerHTML = '';
-  for (let i=1; i<=35; i++) { const opt = document.createElement('option'); opt.value = i; opt.textContent = `Tuần ${i}`; sel.appendChild(opt); }
-  sel.value = 1;
+    const sel = document.getElementById('weekSelect');
+    sel.innerHTML = '';
+    for (let i=1; i<=35; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `Tuần ${i}`;
+        sel.appendChild(opt);
+    }
+    sel.value = 1;
 }
 
 function getWeekRange(weekNum) {
-  const data = loadData();
-  const w = data.weeks.find(w => w.week === weekNum);
-  if (w && w.start && w.end) return { start: w.start, end: w.end };
-  const base = data.weeks[0]?.start || '2026-09-07';
-  const d = new Date(base); d.setDate(d.getDate() + (weekNum-1)*7);
-  const start = d.toISOString().slice(0,10);
-  const endD = new Date(d); endD.setDate(endD.getDate() + 4);
-  return { start, end: endD.toISOString().slice(0,10) };
+    const data = loadData();
+    const w = data.weeks.find(w => w.week === weekNum);
+    if (w && w.start && w.end) return { start: w.start, end: w.end };
+    const base = data.weeks[0]?.start || '2026-09-07';
+    const d = new Date(base);
+    d.setDate(d.getDate() + (weekNum-1)*7);
+    const start = d.toISOString().slice(0,10);
+    const endD = new Date(d);
+    endD.setDate(endD.getDate() + 4);
+    return { start, end: endD.toISOString().slice(0,10) };
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' });
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' });
 }
 
 function getDateFromWeek(week, dayOffset) {
-  const data = loadData();
-  const base = data.weeks[0]?.start || '2026-09-07';
-  const d = new Date(base); d.setDate(d.getDate() + (week-1)*7 + dayOffset);
-  return d.toISOString().slice(0,10);
+    const data = loadData();
+    const base = data.weeks[0]?.start || '2026-09-07';
+    const d = new Date(base);
+    d.setDate(d.getDate() + (week-1)*7 + dayOffset);
+    return d.toISOString().slice(0,10);
 }
 
 function removeNumberFromSubject(subject) {
-  if (!subject) return subject;
-  return subject.replace(/\s*\d+$/, '');
+    if (!subject) return subject;
+    return subject.replace(/\s*\d+$/, '');
 }
 
 function renderPlan() {
-  const week = parseInt(document.getElementById('weekSelect').value);
-  if (!week) return;
-  const data = loadData();
-  const range = getWeekRange(week);
-  const startDate = new Date(range.start);
-  const planDate = new Date(startDate); planDate.setDate(planDate.getDate() - 7);
-  const planDateStr = formatDate(planDate.toISOString().slice(0,10));
-  document.getElementById('weekRangeInfo').textContent = `Tuần ${week}: ${formatDate(range.start)} - ${formatDate(range.end)}`;
-  document.getElementById('planDateInfo').textContent = `📝 Ngày lập KH: ${planDateStr}`;
+    const week = parseInt(document.getElementById('weekSelect').value);
+    if (!week) return;
+    const data = loadData();
+    const range = getWeekRange(week);
 
-  const tkbs = data.timetable;
-  const matrix = Array.from({ length: 7 }, () => Array(5).fill(null));
-  tkbs.forEach(t => {
-    if (t.day !== undefined && t.period !== undefined) { matrix[t.period][t.day] = t; }
-  });
+    const startDate = new Date(range.start);
+    const planDate = new Date(startDate);
+    planDate.setDate(planDate.getDate() - 7);
+    const planDateStr = formatDate(planDate.toISOString().slice(0,10));
 
-  const dayNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu'];
-  const dayDates = []; for (let d=0; d<5; d++) { dayDates.push(formatDate(getDateFromWeek(week, d))); }
-  const teacher = data.teacher;
-  const title = `PHỤ LỤC 1.4 HĐGD Tuần ${week}`;
-  const subtitle = `Năm học: ${teacher.year || '2026 - 2027'}. ${teacher.school || 'Trường TH. Trần Quốc Toản'}`;
+    document.getElementById('weekRangeInfo').textContent =
+        `Tuần ${week}: ${formatDate(range.start)} - ${formatDate(range.end)}`;
+    document.getElementById('planDateInfo').textContent = `📝 Ngày lập KH: ${planDateStr}`;
 
-  let html = `<div class="print-header"><h2>${title}</h2><p>${subtitle}</p><p style="text-align:right; font-size:13px; color:#475569;">Ngày lập KH: ${planDateStr}</p></div>
-  <table class="plan-table"><thead><tr><th rowspan="2" style="width:65px;">T.GIAN</th><th rowspan="2" style="width:50px;">Tiết</th>`;
-  for (let d=0; d<5; d++) html += `<th colspan="1">${dayNames[d]}<br><span style="font-weight:400;font-size:12px;color:#475569;">${dayDates[d]}</span></th>`;
-  html += `<th rowspan="2" style="width:80px;">Nội dung điều chỉnh</th></tr><tr>`;
-  for (let d=0; d<5; d++) html += `<th style="font-weight:400;font-size:11px;color:#94a3b8;">&nbsp;</th>`;
-  html += `</tr></thead><tbody>`;
+    const tkbs = data.timetable;
+    const matrix = Array.from({ length: 7 }, () => Array(5).fill(null));
+    tkbs.forEach(t => {
+        if (t.day !== undefined && t.period !== undefined) {
+            matrix[t.period][t.day] = t;
+        }
+    });
 
-  for (let p=0; p<7; p++) {
-    const period = p+1; const sessionLabel = p === 0 ? 'SÁNG' : (p === 4 ? 'CHIỀU' : '');
-    const rowspan = (p === 0 || p === 4) ? (p < 4 ? 4 : 3) : 0;
-    html += `<tr>`;
-    if (rowspan > 0) html += `<td rowspan="${rowspan}" class="tgian-label">${sessionLabel}</td>`;
-    html += `<td class="tiet-label">${period}</td>`;
+    const dayNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu'];
+    const dayDates = [];
     for (let d=0; d<5; d++) {
-      const t = matrix[p][d];
-      let content = '';
-      if (t && t.subject && t.class) {
-        const ppctItem = data.ppct.find(pp => pp.week === week && pp.subject === t.subject && pp.grade === t.grade);
-        const lessonName = ppctItem ? ppctItem.lesson : '';
-        const displaySubject = removeNumberFromSubject(t.subject);
-        const monLop = `${displaySubject} - ${t.class}`;
-        content = `<div class="cell-content"><div class="mon-lop">${monLop}</div><div class="bai-hoc">${lessonName}</div></div>`;
-      } else content = '<span style="color:#94a3b8;font-size:12px;">(trống)</span>';
-      html += `<td>${content}</td>`;
+        dayDates.push(formatDate(getDateFromWeek(week, d)));
     }
-    html += `<td></td></tr>`;
-  }
-  html += `</tbody></table>`;
 
-  const countMap = {};
-  tkbs.forEach(t => { if (t.subject) { const key = removeNumberFromSubject(t.subject); countMap[key] = (countMap[key] || 0) + 1; } });
-  const total = tkbs.filter(t => t.subject).length;
-  let summaryHtml = `<div class="summary-box"><strong>Tổng hợp số tiết trong tuần ${week}:</strong> <span style="font-weight:700;color:#2563eb;">${total} tiết</span><br>`;
-  const parts = []; for (const [subject, count] of Object.entries(countMap)) { parts.push(`${subject}: ${count} tiết`); }
-  summaryHtml += parts.join('; ') + '</div>';
+    const teacher = data.teacher;
+    const title = `PHỤ LỤC 1.4 HĐGD Tuần ${week}`;
+    const subtitle = `Năm học: ${teacher.year || '2026 - 2027'}. ${teacher.school || 'Trường TH. Trần Quốc Toản'}`;
 
-  let detailRows = ''; let idx = 1;
-  detailRows += `<tr><td>${idx}</td><td>Phòng máy</td><td>3</td><td></td></tr>`; idx++;
-  const subjectKeys = Object.keys(countMap).sort();
-  subjectKeys.forEach(key => { detailRows += `<tr><td>${idx}</td><td>${key}</td><td>${countMap[key]}</td><td></td></tr>`; idx++; });
-  const totalWithLab = total + 3;
-  const summaryTable = `<div class="summary-box" style="margin-top:12px;"><table><thead><tr><th>TT</th><th>Nội dung</th><th>Số lượng tiết học</th><th>Ghi chú</th></tr></thead><tbody>${detailRows}<tr><td colspan="2"><strong>Tổng số</strong></td><td><strong>${totalWithLab} tiết/tuần</strong></td><td></td></tr></tbody></table></div>`;
+    let html = `
+      <div class="print-header">
+        <h2>${title}</h2>
+        <p>${subtitle}</p>
+        <p style="text-align:right; font-size:13px; color:#475569;">Ngày lập KH: ${planDateStr}</p>
+      </div>
+      <table class="plan-table">
+        <thead>
+          <tr>
+            <th rowspan="2" style="width:65px;">T.GIAN</th>
+            <th rowspan="2" style="width:50px;">Tiết</th>
+    `;
+    for (let d=0; d<5; d++) {
+        html += `<th colspan="1">${dayNames[d]}<br><span style="font-weight:400;font-size:12px;color:#475569;">${dayDates[d]}</span></th>`;
+    }
+    html += `<th rowspan="2" style="width:80px;">Nội dung điều chỉnh</th>`;
+    html += `</tr><tr>`;
+    for (let d=0; d<5; d++) {
+        html += `<th style="font-weight:400;font-size:11px;color:#94a3b8;">&nbsp;</th>`;
+    }
+    html += `</tr></thead><tbody>`;
 
-  const signHtml = `<div class="signature">
-    <div><div style="font-weight:700;">P.HIỆU TRƯỞNG</div><div class="sign-space"></div><div style="font-size:13px;">Nguyễn Thị Mai</div></div>
-    <div><div style="font-weight:700;">P. TỔ TRƯỞNG</div><div class="sign-space"></div><div style="font-size:13px;">Lê Thu Hạnh</div></div>
-    <div><div style="font-weight:700;">NGƯỜI LẬP KẾ HOẠCH</div><div class="sign-space"></div><div style="font-size:13px;">${teacher.name || ''}</div></div>
-  </div><p style="text-align:right; font-size:13px; margin-top:16px; color:#475569;">${planDateStr}</p>`;
+    for (let p=0; p<7; p++) {
+        const period = p+1;
+        const session = p < 4 ? 'Sáng' : 'Chiều';
+        const sessionLabel = p === 0 ? 'SÁNG' : (p === 4 ? 'CHIỀU' : '');
 
-  document.getElementById('planContainer').innerHTML = html + summaryHtml + summaryTable + signHtml;
+        const rowspan = (p === 0 || p === 4) ? (p < 4 ? 4 : 3) : 0;
+        html += `<tr>`;
+        if (rowspan > 0) {
+            html += `<td rowspan="${rowspan}" class="tgian-label">${sessionLabel}</td>`;
+        }
+        html += `<td class="tiet-label">${period}</td>`;
+
+        for (let d=0; d<5; d++) {
+            const t = matrix[p][d];
+            let content = '';
+            if (t && t.subject && t.class) {
+                const ppctItem = data.ppct.find(pp =>
+                    pp.week === week &&
+                    pp.subject === t.subject &&
+                    pp.grade === t.grade
+                );
+                const lessonName = ppctItem ? ppctItem.lesson : '';
+                const displaySubject = removeNumberFromSubject(t.subject);
+                const monLop = `${displaySubject} - ${t.class}`;
+                content = `<div class="cell-content"><div class="mon-lop">${monLop}</div><div class="bai-hoc">${lessonName}</div></div>`;
+            } else {
+                content = '<span style="color:#94a3b8;font-size:12px;">(trống)</span>';
+            }
+            html += `<td>${content}</td>`;
+        }
+        html += `<td></td>`;
+        html += `</tr>`;
+    }
+
+    html += `</tbody></table>`;
+
+    const countMap = {};
+    tkbs.forEach(t => {
+        if (t.subject) {
+            const key = removeNumberFromSubject(t.subject);
+            countMap[key] = (countMap[key] || 0) + 1;
+        }
+    });
+    const total = tkbs.filter(t => t.subject).length;
+
+    let summaryHtml = `<div class="summary-box"><strong>Tổng hợp số tiết trong tuần ${week}:</strong> <span style="font-weight:700;color:#2563eb;">${total} tiết</span><br>`;
+    const parts = [];
+    for (const [subject, count] of Object.entries(countMap)) {
+        parts.push(`${subject}: ${count} tiết`);
+    }
+    summaryHtml += parts.join('; ');
+    summaryHtml += '</div>';
+
+    let detailRows = '';
+    let idx = 1;
+    detailRows += `<tr><td>${idx}</td><td>Phòng máy</td><td>3</td><td></td></tr>`;
+    idx++;
+    const subjectKeys = Object.keys(countMap).sort();
+    subjectKeys.forEach(key => {
+        detailRows += `<tr><td>${idx}</td><td>${key}</td><td>${countMap[key]}</td><td></td></tr>`;
+        idx++;
+    });
+    const totalWithLab = total + 3;
+
+    const summaryTable = `
+      <div class="summary-box" style="margin-top:12px;">
+        <table>
+          <thead><tr><th>TT</th><th>Nội dung</th><th>Số lượng tiết học</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            ${detailRows}
+            <tr><td colspan="2"><strong>Tổng số</strong></td><td><strong>${totalWithLab} tiết/tuần</strong></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    const signHtml = `
+      <div class="signature">
+        <div>
+          <div style="font-weight:700;">P.HIỆU TRƯỞNG</div>
+          <div class="sign-space"></div>
+          <div style="font-size:13px;">Nguyễn Thị Mai</div>
+        </div>
+        <div>
+          <div style="font-weight:700;">P. TỔ TRƯỞNG</div>
+          <div class="sign-space"></div>
+          <div style="font-size:13px;">Lê Thu Hạnh</div>
+        </div>
+        <div>
+          <div style="font-weight:700;">NGƯỜI LẬP KẾ HOẠCH</div>
+          <div class="sign-space"></div>
+          <div style="font-size:13px;">${teacher.name || ''}</div>
+        </div>
+      </div>
+      <p style="text-align:right; font-size:13px; margin-top:16px; color:#475569;">
+        ${planDateStr}
+      </p>
+    `;
+
+    document.getElementById('planContainer').innerHTML = html + summaryHtml + summaryTable + signHtml;
 }
 
-// --- Import / Export / Reset ---
 function exportData() {
-  const data = loadData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = `khhdgd_backup_${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    const data = loadData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `khhdgd_backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 function importData(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      if (!data.teacher || !data.ppct || !data.timetable || !data.weeks) return alert('Dữ liệu không hợp lệ.');
-      if (!confirm('Import sẽ ghi đè toàn bộ dữ liệu hiện tại. Bạn có chắc?')) return;
-      saveData(data); loadAll(); alert('Import thành công!');
-    } catch (err) { alert('Lỗi parse JSON: ' + err.message); }
-  };
-  reader.readAsText(file); event.target.value = '';
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!data.teacher || !data.ppct || !data.timetable || !data.weeks) {
+                alert('Dữ liệu không hợp lệ. Thiếu một trong các trường teacher, ppct, timetable, weeks.');
+                return;
+            }
+            if (!confirm('Import sẽ ghi đè toàn bộ dữ liệu hiện tại. Bạn có chắc?')) return;
+            saveData(data);
+            loadAll();
+            alert('Import thành công!');
+        } catch (err) {
+            alert('Lỗi parse JSON: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
 }
 
 function resetData() {
-  if (!confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu đã lưu và khôi phục về mặc định?')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  const def = getDefaultData(); def.weeks = autoGenerateWeeks(def.weeks);
-  saveData(def); loadAll(); alert('✅ Đã xóa dữ liệu và khôi phục mặc định.');
+    if (!confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu đã lưu và khôi phục về mặc định?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    const def = getDefaultData();
+    def.weeks = autoGenerateWeeks(def.weeks);
+    saveData(def);
+    loadAll();
+    alert('✅ Đã xóa dữ liệu và khôi phục mặc định.');
 }
 
 function saveTeacherInfo() {
-  const data = loadData();
-  data.teacher.unit = document.getElementById('teacherUnit').value.trim();
-  data.teacher.school = document.getElementById('teacherSchool').value.trim();
-  data.teacher.name = document.getElementById('teacherName').value.trim();
-  data.teacher.subject = document.getElementById('teacherSubject').value.trim();
-  data.teacher.year = document.getElementById('teacherYear').value.trim();
-  saveData(data);
-  document.getElementById('teacherMsg').textContent = '✅ Đã lưu!';
-  setTimeout(() => document.getElementById('teacherMsg').textContent = '', 3000);
-  renderPlan();
+    const data = loadData();
+    data.teacher.unit = document.getElementById('teacherUnit').value.trim();
+    data.teacher.school = document.getElementById('teacherSchool').value.trim();
+    data.teacher.name = document.getElementById('teacherName').value.trim();
+    data.teacher.subject = document.getElementById('teacherSubject').value.trim();
+    data.teacher.year = document.getElementById('teacherYear').value.trim();
+    saveData(data);
+    document.getElementById('teacherMsg').textContent = '✅ Đã lưu!';
+    setTimeout(() => document.getElementById('teacherMsg').textContent = '', 3000);
+    renderPlan();
 }
 
 // ================================================================
-// 4. ĐỒNG BỘ LÊN SUPABASE (Đã xử lý triệt để lỗi 403/400)
+// 4. ĐỒNG BỘ LÊN SUPABASE (ĐÃ CHỐT LẠI KHÔNG LỖI TÊN CỘT)
 // ================================================================
 async function syncAllToSupabase() {
-  if (!currentUser) {
-    alert('Vui lòng đăng nhập bằng tài khoản Google trước khi đồng bộ!');
-    return;
-  }
-  const syncBtn = document.getElementById('btn-sync');
-  syncBtn.innerHTML = '⏳ Đang đồng bộ...';
-  syncBtn.style.pointerEvents = 'none';
-  syncBtn.style.opacity = '0.7';
+    if (!currentUser) {
+        alert('Vui lòng đăng nhập bằng tài khoản Google trước khi đồng bộ!');
+        return;
+    }
+    const client = initSupabase();
+    if (!client) return;
 
-  try {
-    const data = loadData();
-    console.log('Bắt đầu đồng bộ dữ liệu lên Supabase...');
-    
-    const teacherPayload = { id: 1, unit_name: data.teacher.unit, school_name: data.teacher.school, teacher_name: data.teacher.name, subject_class: data.teacher.subject, sch: data.teacher.year };
-    
-    // Dùng Promise.all để gửi dữ liệu song song (tăng tốc độ đồng bộ)
-    await Promise.all([
-      window.supabase.from('khgd_teachers').upsert(teacherPayload, { onConflict: 'id' }),
-      window.supabase.from('khgd_ppct').upsert(data.ppct, { onConflict: 'id' }),
-      window.supabase.from('khgd_timetable').upsert(data.timetable, { onConflict: 'id' }),
-      window.supabase.from('khgd_weeks').upsert(data.weeks, { onConflict: 'week' })
-    ]);
+    const syncBtn = document.getElementById('btn-sync');
+    syncBtn.innerHTML = '⏳ Đang đồng bộ...';
+    syncBtn.style.pointerEvents = 'none';
+    syncBtn.style.opacity = '0.7';
 
-    alert('☁️ Đã đồng bộ dữ liệu lên Server thành công!');
-    console.log('Đồng bộ hoàn tất.');
-  } catch (error) {
-    console.error('Lỗi chi tiết:', error);
-    alert('❌ Lỗi đồng bộ: ' + (error.message || error.error_description || 'Lỗi không xác định'));
-  } finally {
-    syncBtn.innerHTML = '☁️ Đồng bộ lên server';
-    syncBtn.style.pointerEvents = 'auto';
-    syncBtn.style.opacity = '1';
-  }
+    try {
+        const data = loadData();
+        console.log('Bắt đầu đồng bộ dữ liệu lên Supabase...');
+
+        // 1. Khgd_teachers (Vẫn giữ nguyên logic)
+        const teacherPayload = {
+            id: 1,
+            unit_name: data.teacher.unit || '',
+            school_name: data.teacher.school || '',
+            teacher_name: data.teacher.name || '',
+            subject_class: data.teacher.subject || '',
+            sch: data.teacher.year || ''
+        };
+
+        // 2. Khgd_ppct (Đã sửa lại tên cột để khớp với SQL vừa đổi)
+        const ppctPayload = data.ppct.map(item => ({
+            week: item.week,
+            ppct: item.ppct,
+            subject: item.subject,
+            grade: item.grade,
+            lesson: item.lesson,
+            stem: item.stem || ''
+        }));
+
+        // 3. Khgd_timetable (Tên cột giữ nguyên: day, session, period, subject, grade, class)
+        const timetablePayload = data.timetable.map(item => ({
+            day: item.day,
+            session: item.session,
+            period: item.period,
+            subject: item.subject,
+            grade: item.grade,
+            class: item.class
+        }));
+
+        // 4. Khgd_weeks (Đã sửa lại tên cột để khớp với SQL vừa đổi)
+        const weeksPayload = data.weeks.map(item => ({
+            week: item.week,
+            start: item.start,
+            end: item.end
+        }));
+
+        // Gửi dữ liệu
+        await client.from('khgd_teachers').upsert(teacherPayload, { onConflict: 'id' });
+        await client.from('khgd_ppct').upsert(ppctPayload, { onConflict: 'week, ppct, subject, grade' });
+        await client.from('khgd_timetable').upsert(timetablePayload, { onConflict: 'day, period, subject, grade' });
+        await client.from('khgd_weeks').upsert(weeksPayload, { onConflict: 'week' });
+
+        alert('☁️ Đã đồng bộ dữ liệu lên Server thành công!');
+        console.log('Đồng bộ hoàn tất.');
+    } catch (error) {
+        console.error('❌ Lỗi chi tiết lần cuối:', error);
+        alert('❌ Lỗi đồng bộ: ' + (error.message || error.error_description || 'Lỗi không xác định.'));
+    } finally {
+        syncBtn.innerHTML = '☁️ Đồng bộ lên server';
+        syncBtn.style.pointerEvents = 'auto';
+        syncBtn.style.opacity = '1';
+    }
 }
 
 // ================================================================
-// 5. TẢI DỮ LIỆU TỪ SUPABASE XUỐNG
+// 5. TẢI DỮ LIỆU TỪ SUPABASE
 // ================================================================
 async function loadDataFromSupabase() {
-  try {
-    const [teacherRes, ppctRes, timetableRes, weeksRes] = await Promise.all([
-      window.supabase.from('khgd_teachers').select('*'),
-      window.supabase.from('khgd_ppct').select('*'),
-      window.supabase.from('khgd_timetable').select('*'),
-      window.supabase.from('khgd_weeks').select('*')
-    ]);
+    const client = initSupabase();
+    if (!client) return;
+    try {
+        const [teacherRes, ppctRes, timetableRes, weeksRes] = await Promise.all([
+            client.from('khgd_teachers').select('*'),
+            client.from('khgd_ppct').select('*'),
+            client.from('khgd_timetable').select('*'),
+            client.from('khgd_weeks').select('*')
+        ]);
 
-    const teacher = teacherRes.data?.[0] || {};
-    const data = {
-      teacher: {
-        unit: teacher.unit_name || '', school: teacher.school_name || '',
-        name: teacher.teacher_name || '', subject: teacher.subject_class || '', year: teacher.sch || ''
-      },
-      ppct: ppctRes.data || [],
-      timetable: timetableRes.data || [],
-      weeks: weeksRes.data || []
-    };
-    
-    // Nếu cloud rỗng, tạo dữ liệu weeks mẫu
-    if (data.weeks.length === 0) {
-      data.weeks = Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }));
-      data.weeks = autoGenerateWeeks(data.weeks);
+        const teacher = teacherRes.data?.[0] || {};
+        const data = {
+            teacher: {
+                unit: teacher.unit_name || '', school: teacher.school_name || '',
+                name: teacher.teacher_name || '', subject: teacher.subject_class || '', year: teacher.sch || ''
+            },
+            ppct: ppctRes.data || [],
+            timetable: timetableRes.data || [],
+            weeks: weeksRes.data || []
+        };
+        
+        if (data.weeks.length === 0) {
+            data.weeks = Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }));
+            data.weeks = autoGenerateWeeks(data.weeks);
+        }
+        
+        const localData = loadData();
+        if (data.ppct.length > 0) localData.ppct = data.ppct;
+        if (data.timetable.length > 0) localData.timetable = data.timetable;
+        localData.teacher = data.teacher;
+        localData.weeks = data.weeks;
+
+        saveData(localData);
+        loadAll();
+        console.log('✅ Đã tải dữ liệu từ Cloud thành công.');
+        document.querySelector('.toast-save-msg')?.remove();
+    } catch (error) {
+        console.error('Lỗi tải dữ liệu từ Cloud:', error);
+        loadAll();
     }
-    
-    saveData(data);
-    loadAll();
-    console.log('✅ Đã tải dữ liệu từ Cloud thành công.');
-    document.querySelector('.toast-save-msg')?.remove();
-  } catch (error) {
-    console.error('Lỗi tải dữ liệu từ Cloud:', error);
-    // Nếu lỗi mạng, fallback về local data
-    loadAll();
-  }
 }
 
 // ================================================================
-// 6. REAL-TIME SYNC (Luôn lắng nghe thay đổi từ xa)
-// ================================================================
-let realtimeChannel = null;
-function initRealtimeSync() {
-  if(realtimeChannel) return;
-  realtimeChannel = window.supabase
-    .channel('public-db-changes')
-    .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
-      console.log('🔔 Phát hiện thay đổi dữ liệu từ xa:', payload);
-      loadDataFromSupabase();
-    })
-    .subscribe();
-}
-
-// ================================================================
-// 7. HÀM KHỞI TẠO VÀ GÁN RA TOÀN CỤC (Global)
+// 6. KHỞI TẠO APP & GÁN RA GLOBAL
 // ================================================================
 function loadAll() {
-  loadTeacherInfo(); renderPPCT(); renderTKB(); renderWeeks(); loadWeekSelect(); renderPlan();
-  const data = loadData(); updatePPCTFilters(data);
-  document.getElementById('importErrors').style.display = 'none';
-  const badge = document.getElementById('ppctBadge');
-  if (badge) badge.textContent = data.ppct.length;
+    loadTeacherInfo(); renderPPCT(); renderTKB(); renderWeeks(); loadWeekSelect(); renderPlan();
+    const data = loadData(); updatePPCTFilters(data);
+    document.getElementById('importErrors').style.display = 'none';
+    const badge = document.getElementById('ppctBadge');
+    if (badge) badge.textContent = data.ppct.length;
 }
 
-// Export các hàm ra global để HTML onclick hoạt động
 window.loadAll = loadAll;
 window.loadDataFromSupabase = loadDataFromSupabase;
 window.syncAllToSupabase = syncAllToSupabase;
@@ -1018,31 +1230,32 @@ window.renderTKB = renderTKB;
 window.renderWeeks = renderWeeks;
 
 // ================================================================
-// 8. KHỞI ĐỘNG KHI TẢI TRANG (INIT)
+// 7. KHỞI ĐỘNG KHI TẢI TRANG
 // ================================================================
 window.addEventListener('DOMContentLoaded', async () => {
-  const { data: { session } } = await window.supabase.auth.getSession();
-  if (session) {
-    updateUIState(session.user);
-    await loadDataFromSupabase();
-  } else {
-    updateUIState(null);
-    loadAll();
-  }
-  initRealtimeSync();
-
-  // Lắng nghe sự kiện thay đổi đăng nhập/đăng xuất
-  window.supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      updateUIState(session.user);
-      loadDataFromSupabase();
-    } else if (event === 'SIGNED_OUT') {
-      updateUIState(null);
-      loadAll(); // Trở về dữ liệu local
+    const client = initSupabase();
+    if (!client) { updateUIState(null); loadAll(); return; }
+    
+    const { data: { session } } = await client.auth.getSession();
+    if (session) {
+        updateUIState(session.user);
+        await loadDataFromSupabase();
+    } else {
+        updateUIState(null);
+        loadAll();
     }
-  });
 
-  console.log('✅ Ứng dụng đã sẵn sàng!');
+    client.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+            updateUIState(session.user);
+            loadDataFromSupabase();
+        } else if (event === 'SIGNED_OUT') {
+            updateUIState(null);
+            loadAll();
+        }
+    });
+
+    console.log('✅ Ứng dụng đã sẵn sàng!');
 });
 </script>
 </body>
