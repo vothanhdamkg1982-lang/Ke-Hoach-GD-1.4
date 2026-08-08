@@ -5,648 +5,126 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kế Hoạch Giáo Dục - Phụ lục 1.4</title>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ----- Cấu hình in A4 ----- */
-    @page {
-      size: A4;
-      margin: 12mm 10mm 12mm 10mm;
-    }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: 'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif;
-      background: #f0f4f9;
-      color: #1e293b;
-      padding: 20px;
-      min-height: 100vh;
-    }
-    .app {
-      max-width: 1440px;
-      margin: 0 auto;
-    }
-    /* ---------- Header ---------- */
-    .app-header {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border-radius: 20px;
-      padding: 24px 32px;
-      margin-bottom: 28px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 12px 40px rgba(15, 23, 42, 0.25);
-    }
-    .app-header h1 {
-      font-size: 28px;
-      font-weight: 800;
-      color: #ffffff;
-      letter-spacing: -0.5px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .app-header h1 span {
-      background: rgba(255, 255, 255, 0.15);
-      padding: 4px 14px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-    .app-header .sub {
-      color: #94a3b8;
-      font-size: 14px;
-      font-weight: 400;
-    }
-    .app-header .header-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    /* ---------- Tabs ---------- */
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      background: white;
-      border-radius: 18px 18px 0 0;
-      padding: 8px 20px 0 20px;
-      box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.03);
-      border-bottom: 2px solid #e9edf4;
-    }
-    .tab-btn {
-      padding: 14px 26px;
-      font-weight: 600;
-      font-size: 15px;
-      color: #64748b;
-      background: transparent;
-      border: none;
-      border-radius: 12px 12px 0 0;
-      cursor: pointer;
-      transition: 0.25s;
-      font-family: inherit;
-      position: relative;
-    }
-    .tab-btn:hover {
-      color: #0f172a;
-      background: #f1f5f9;
-    }
-    .tab-btn.active {
-      color: #2563eb;
-      background: #f8faff;
-      box-shadow: inset 0 -3px 0 #2563eb;
-    }
-    .tab-btn .badge {
-      background: #2563eb;
-      color: white;
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 20px;
-      margin-left: 6px;
-    }
-    .tab-content {
-      background: white;
-      border-radius: 0 18px 18px 18px;
-      padding: 32px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    /* ---------- Form ---------- */
-    .form-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-    .form-row > * {
-      flex: 1 1 200px;
-    }
-    label {
-      font-weight: 600;
-      font-size: 14px;
-      color: #334155;
-      display: block;
-      margin-bottom: 4px;
-    }
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      font-size: 14px;
-      font-family: inherit;
-      background: white;
-      transition: 0.2s;
-    }
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-    }
-    /* ---------- Buttons ---------- */
-    .btn {
-      padding: 12px 28px;
-      border: none;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.2s;
-      font-family: inherit;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .btn-primary {
-      background: #2563eb;
-      color: white;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-    }
-    .btn-primary:hover {
-      background: #1d4ed8;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
-    }
-    .btn-success {
-      background: #16a34a;
-      color: white;
-      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
-    }
-    .btn-success:hover {
-      background: #15803d;
-      transform: translateY(-1px);
-    }
-    .btn-danger {
-      background: #dc2626;
-      color: white;
-      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    }
-    .btn-danger:hover {
-      background: #b91c1c;
-      transform: translateY(-1px);
-    }
-    .btn-outline {
-      background: transparent;
-      border: 2px solid #e2e8f0;
-      color: #334155;
-    }
-    .btn-outline:hover {
-      background: #f1f5f9;
-      border-color: #94a3b8;
-    }
-    .btn-sm {
-      padding: 6px 14px;
-      font-size: 12px;
-      border-radius: 8px;
-    }
-    /* ---------- Tables ---------- */
-    .table-wrap {
-      overflow-x: auto;
-      margin-top: 16px;
-      border-radius: 14px;
-      border: 1px solid #e2e8f0;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    th {
-      background: #f1f5f9;
-      font-weight: 700;
-      text-align: center;
-      padding: 12px 14px;
-      border-bottom: 2px solid #e2e8f0;
-      color: #0f172a;
-    }
-    td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #e2e8f0;
-      vertical-align: middle;
-      text-align: center;
-    }
-    .table-striped tbody tr:nth-child(even) {
-      background: #fafcfd;
-    }
-    .editable-cell {
-      cursor: pointer;
-      border-radius: 6px;
-      padding: 4px 8px;
-    }
-    .editable-cell:hover {
-      background: #eff6ff;
-    }
-    /* ---------- Import ---------- */
-    .import-area {
-      width: 100%;
-      min-height: 200px;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      border-radius: 12px;
-    }
-    .error-box {
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-top: 12px;
-      max-height: 250px;
-      overflow-y: auto;
-      font-size: 13px;
-      white-space: pre-wrap;
-    }
-    .error-box .error-title {
-      font-weight: 700;
-      color: #dc2626;
-      margin-bottom: 4px;
-      font-size: 15px;
-    }
-    /* ---------- Add form ---------- */
-    .add-form {
-      background: #f8fafc;
-      padding: 20px;
-      border-radius: 14px;
-      margin-bottom: 18px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: end;
-      border: 1px solid #e2e8f0;
-    }
-    .add-form > div {
-      flex: 1 1 100px;
-    }
-    .add-form label {
-      font-size: 12px;
-      font-weight: 600;
-      color: #475569;
-      margin-bottom: 2px;
-    }
-    .add-form input,
-    .add-form select {
-      padding: 8px 12px;
-      font-size: 13px;
-      border-radius: 10px;
-    }
-    /* ---------- TKB ---------- */
-    .tkb-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-      border-radius: 14px;
-      overflow: hidden;
-    }
-    .tkb-table th,
-    .tkb-table td {
-      border: 1px solid #e2e8f0;
-      padding: 6px 4px;
-      vertical-align: middle;
-      text-align: center;
-    }
-    .tkb-table th {
-      background: #f1f5f9;
-      font-weight: 700;
-    }
-    .tkb-table .buoi-label {
-      font-weight: 700;
-      background: #f8fafc;
-      min-width: 50px;
-      font-size: 13px;
-      color: #0f172a;
-    }
-    .tkb-table .tiet-label {
-      font-weight: 700;
-      background: #f8fafc;
-      min-width: 40px;
-    }
-    .tkb-cell-content {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      align-items: stretch;
-    }
-    .tkb-cell-content select,
-    .tkb-cell-content input {
-      padding: 3px 4px;
-      font-size: 11px;
-      border: 1px solid #d1d9e6;
-      border-radius: 6px;
-      background: white;
-      width: 100%;
-      min-width: 40px;
-      text-align: center;
-    }
-    .tkb-cell-content select {
-      min-height: 24px;
-    }
-    .tkb-cell-content input {
-      min-height: 24px;
-    }
-    /* ---------- Plan Controls ---------- */
-    .plan-controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 28px;
-      background: #f8fafc;
-      padding: 16px 24px;
-      border-radius: 16px;
-      border: 1px solid #e2e8f0;
-    }
-    .plan-controls select {
-      width: auto;
-      flex: 0 1 140px;
-      padding: 10px 16px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-    .plan-controls .info {
-      font-size: 16px;
-      font-weight: 600;
-      color: #0f172a;
-      background: white;
-      padding: 8px 20px;
-      border-radius: 30px;
-      border: 1px solid #e2e8f0;
-    }
-    .btn-group {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    /* ---------- Plan Table ---------- */
-    .plan-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13.5px;
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-    }
-    .plan-table th,
-    .plan-table td {
-      border: 1px solid #d1d9e6;
-      padding: 8px 10px;
-      vertical-align: middle;
-      text-align: center;
-    }
-    .plan-table th {
-      background: #f1f5f9;
-      font-weight: 700;
-      font-size: 13px;
-      color: #0f172a;
-    }
-    .plan-table .tgian-label {
-      font-weight: 700;
-      background: #f8fafc;
-      min-width: 60px;
-      font-size: 13px;
-      color: #0f172a;
-    }
-    .plan-table .tiet-label {
-      font-weight: 700;
-      background: #f8fafc;
-      min-width: 40px;
-      font-size: 13px;
-    }
-    .plan-table .cell-content {
-      font-size: 12.5px;
-      line-height: 1.4;
-    }
-    .plan-table .cell-content .mon-lop {
-      font-weight: 700;
-      color: #0f172a;
-    }
-    .plan-table .cell-content .bai-hoc {
-      font-weight: 400;
-      color: #1e293b;
-    }
-    /* ---------- Summary ---------- */
-    .summary-box {
-      margin-top: 24px;
-      background: #f8fafc;
-      border-radius: 14px;
-      padding: 20px 24px;
-      border: 1px solid #e2e8f0;
-    }
-    .summary-box table {
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    .summary-box td,
-    .summary-box th {
-      padding: 6px 16px;
-      border: none;
-    }
-    .summary-box th {
-      background: transparent;
-      font-weight: 700;
-      color: #0f172a;
-    }
-    /* ---------- Signature ---------- */
-    .signature {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 40px;
-      font-size: 14px;
-      gap: 40px;
-    }
-    .signature > div {
-      text-align: center;
-      flex: 1;
-    }
-    .signature .sign-space {
-      height: 30px;
-      margin: 4px 0 6px 0;
-    }
-    /* ---------- Print ---------- */
+    /* ======= TOÀN BỘ CSS GIỮ NGUYÊN ======= */
+    @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Be Vietnam Pro', sans-serif; background: #f0f4f9; color: #1e293b; padding: 20px; min-height: 100vh; }
+    .app { max-width: 1440px; margin: 0 auto; }
+    .app-header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 20px; padding: 24px 32px; margin-bottom: 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; box-shadow: 0 12px 40px rgba(15,23,42,0.25); }
+    .app-header h1 { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; display: flex; align-items: center; gap: 12px; }
+    .app-header h1 span { background: rgba(255,255,255,0.15); padding: 4px 14px; border-radius: 30px; font-size: 14px; font-weight: 500; }
+    .app-header .sub { color: #94a3b8; font-size: 14px; font-weight: 400; }
+    .app-header .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 4px; background: #fff; border-radius: 18px 18px 0 0; padding: 8px 20px 0 20px; box-shadow: 0 -2px 20px rgba(0,0,0,0.03); border-bottom: 2px solid #e9edf4; }
+    .tab-btn { padding: 14px 26px; font-weight: 600; font-size: 15px; color: #64748b; background: transparent; border: none; border-radius: 12px 12px 0 0; cursor: pointer; transition: 0.25s; font-family: inherit; position: relative; }
+    .tab-btn:hover { color: #0f172a; background: #f1f5f9; }
+    .tab-btn.active { color: #2563eb; background: #f8faff; box-shadow: inset 0 -3px 0 #2563eb; }
+    .tab-btn .badge { background: #2563eb; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 20px; margin-left: 6px; }
+    .tab-content { background: #fff; border-radius: 0 18px 18px 18px; padding: 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.06); display: none; }
+    .tab-content.active { display: block; }
+    .form-row { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 18px; }
+    .form-row > * { flex: 1 1 200px; }
+    label { font-weight: 600; font-size: 14px; color: #334155; display: block; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-family: inherit; background: #fff; transition: 0.2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 4px rgba(37,99,235,0.12); }
+    .btn { padding: 12px 28px; border: none; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: #2563eb; color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.35); }
+    .btn-success { background: #16a34a; color: #fff; box-shadow: 0 4px 12px rgba(22,163,74,0.3); }
+    .btn-success:hover { background: #15803d; transform: translateY(-1px); }
+    .btn-danger { background: #dc2626; color: #fff; box-shadow: 0 4px 12px rgba(220,38,38,0.3); }
+    .btn-danger:hover { background: #b91c1c; transform: translateY(-1px); }
+    .btn-outline { background: transparent; border: 2px solid #e2e8f0; color: #334155; }
+    .btn-outline:hover { background: #f1f5f9; border-color: #94a3b8; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+    .table-wrap { overflow-x: auto; margin-top: 16px; border-radius: 14px; border: 1px solid #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { background: #f1f5f9; font-weight: 700; text-align: center; padding: 12px 14px; border-bottom: 2px solid #e2e8f0; color: #0f172a; }
+    td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; text-align: center; }
+    .table-striped tbody tr:nth-child(even) { background: #fafcfd; }
+    .editable-cell { cursor: pointer; border-radius: 6px; padding: 4px 8px; }
+    .editable-cell:hover { background: #eff6ff; }
+    .import-area { width: 100%; min-height: 200px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; border-radius: 12px; }
+    .error-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 20px; margin-top: 12px; max-height: 250px; overflow-y: auto; font-size: 13px; white-space: pre-wrap; }
+    .error-box .error-title { font-weight: 700; color: #dc2626; margin-bottom: 4px; font-size: 15px; }
+    .add-form { background: #f8fafc; padding: 20px; border-radius: 14px; margin-bottom: 18px; display: flex; flex-wrap: wrap; gap: 12px; align-items: end; border: 1px solid #e2e8f0; }
+    .add-form > div { flex: 1 1 100px; }
+    .add-form label { font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 2px; }
+    .add-form input, .add-form select { padding: 8px 12px; font-size: 13px; border-radius: 10px; }
+    .tkb-table { width: 100%; border-collapse: collapse; font-size: 13px; border-radius: 14px; overflow: hidden; }
+    .tkb-table th, .tkb-table td { border: 1px solid #e2e8f0; padding: 6px 4px; vertical-align: middle; text-align: center; }
+    .tkb-table th { background: #f1f5f9; font-weight: 700; }
+    .tkb-table .buoi-label { font-weight: 700; background: #f8fafc; min-width: 50px; font-size: 13px; color: #0f172a; }
+    .tkb-table .tiet-label { font-weight: 700; background: #f8fafc; min-width: 40px; }
+    .tkb-cell-content { display: flex; flex-direction: column; gap: 3px; align-items: stretch; }
+    .tkb-cell-content select, .tkb-cell-content input { padding: 3px 4px; font-size: 11px; border: 1px solid #d1d9e6; border-radius: 6px; background: #fff; width: 100%; min-width: 40px; text-align: center; }
+    .tkb-cell-content select { min-height: 24px; }
+    .tkb-cell-content input { min-height: 24px; }
+    .plan-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 28px; background: #f8fafc; padding: 16px 24px; border-radius: 16px; border: 1px solid #e2e8f0; }
+    .plan-controls select { width: auto; flex: 0 1 140px; padding: 10px 16px; border-radius: 10px; font-weight: 600; }
+    .plan-controls .info { font-size: 16px; font-weight: 600; color: #0f172a; background: #fff; padding: 8px 20px; border-radius: 30px; border: 1px solid #e2e8f0; }
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    .plan-table { width: 100%; border-collapse: collapse; font-size: 13.5px; border-radius: 14px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+    .plan-table th, .plan-table td { border: 1px solid #d1d9e6; padding: 8px 10px; vertical-align: middle; text-align: center; }
+    .plan-table th { background: #f1f5f9; font-weight: 700; font-size: 13px; color: #0f172a; }
+    .plan-table .tgian-label { font-weight: 700; background: #f8fafc; min-width: 60px; font-size: 13px; color: #0f172a; }
+    .plan-table .tiet-label { font-weight: 700; background: #f8fafc; min-width: 40px; font-size: 13px; }
+    .plan-table .cell-content { font-size: 12.5px; line-height: 1.4; }
+    .plan-table .cell-content .mon-lop { font-weight: 700; color: #0f172a; }
+    .plan-table .cell-content .bai-hoc { font-weight: 400; color: #1e293b; }
+    .summary-box { margin-top: 24px; background: #f8fafc; border-radius: 14px; padding: 20px 24px; border: 1px solid #e2e8f0; }
+    .summary-box table { border-collapse: collapse; font-size: 14px; }
+    .summary-box td, .summary-box th { padding: 6px 16px; border: none; }
+    .summary-box th { background: transparent; font-weight: 700; color: #0f172a; }
+    .signature { display: flex; justify-content: space-around; margin-top: 40px; font-size: 14px; gap: 40px; }
+    .signature > div { text-align: center; flex: 1; }
+    .signature .sign-space { height: 30px; margin: 4px 0 6px 0; }
     @media print {
-      body {
-        background: white;
-        padding: 0;
-        margin: 0;
-      }
-      .no-print {
-        display: none !important;
-      }
-      .app-header,
-      .tabs,
-      .plan-controls,
-      .btn-group,
-      .add-form {
-        display: none !important;
-      }
-      .tab-content {
-        display: block !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        border-radius: 0 !important;
-        background: white !important;
-      }
-      .tab-content:not(.active) {
-        display: none !important;
-      }
-      #tab-plan {
-        display: block !important;
-      }
-      .table-wrap {
-        overflow: visible !important;
-      }
-      .plan-table {
-        font-size: 10.5px;
-        border: 1px solid #000;
-        width: 100%;
-        border-collapse: collapse;
-      }
-      .plan-table th,
-      .plan-table td {
-        padding: 3px 4px;
-        border: 1px solid #000;
-        font-size: 10px;
-        line-height: 1.3;
-        vertical-align: middle;
-        text-align: center;
-      }
-      .plan-table .cell-content {
-        font-size: 10px;
-      }
-      .plan-table .cell-content .mon-lop {
-        font-size: 10.5px;
-        font-weight: 700;
-      }
-      .plan-table .cell-content .bai-hoc {
-        font-size: 9.5px;
-        font-weight: 400;
-      }
-      .plan-table th {
-        background: #e5e7eb !important;
-        font-size: 10.5px;
-        font-weight: 700;
-        border: 1px solid #000;
-      }
-      .plan-table .tgian-label,
-      .plan-table .tiet-label {
-        background: #f3f4f6 !important;
-        font-size: 10.5px;
-        font-weight: 700;
-      }
-      .tkb-table {
-        display: none !important;
-      }
-      .print-header {
-        display: block !important;
-      }
-      .print-header h2 {
-        font-size: 18px;
-        margin-bottom: 2px;
-      }
-      .print-header p {
-        font-size: 13px;
-        margin: 2px 0;
-      }
-      .summary-box {
-        border: 1px solid #000;
-        margin-top: 12px;
-        padding: 8px 12px;
-        font-size: 11px;
-      }
-      .summary-box table {
-        font-size: 10.5px;
-      }
-      .summary-box td,
-      .summary-box th {
-        padding: 2px 8px;
-      }
-      .signature {
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: space-around !important;
-        gap: 20px !important;
-        margin-top: 24px !important;
-      }
-      .signature > div {
-        flex: 1 !important;
-        text-align: center !important;
-      }
-      .signature .sign-space {
-        height: 20px !important;
-        margin: 2px 0 4px 0 !important;
-      }
-      .signature div div:first-child {
-        font-size: 12px !important;
-        font-weight: 700 !important;
-      }
-      .signature div div:last-child {
-        font-size: 12px !important;
-      }
-      .plan-table tr {
-        page-break-inside: avoid;
-      }
-      .plan-table thead {
-        display: table-header-group;
-      }
+      body { background: #fff; padding: 0; margin: 0; }
+      .no-print { display: none !important; }
+      .app-header, .tabs, .plan-controls, .btn-group, .add-form { display: none !important; }
+      .tab-content { display: block !important; box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; background: #fff !important; }
+      .tab-content:not(.active) { display: none !important; }
+      #tab-plan { display: block !important; }
+      .table-wrap { overflow: visible !important; }
+      .plan-table { font-size: 10.5px; border: 1px solid #000; width: 100%; border-collapse: collapse; }
+      .plan-table th, .plan-table td { padding: 3px 4px; border: 1px solid #000; font-size: 10px; line-height: 1.3; vertical-align: middle; text-align: center; }
+      .plan-table .cell-content { font-size: 10px; }
+      .plan-table .cell-content .mon-lop { font-size: 10.5px; font-weight: 700; }
+      .plan-table .cell-content .bai-hoc { font-size: 9.5px; font-weight: 400; }
+      .plan-table th { background: #e5e7eb !important; font-size: 10.5px; font-weight: 700; border: 1px solid #000; }
+      .plan-table .tgian-label, .plan-table .tiet-label { background: #f3f4f6 !important; font-size: 10.5px; font-weight: 700; }
+      .tkb-table { display: none !important; }
+      .print-header { display: block !important; }
+      .print-header h2 { font-size: 18px; margin-bottom: 2px; }
+      .print-header p { font-size: 13px; margin: 2px 0; }
+      .summary-box { border: 1px solid #000; margin-top: 12px; padding: 8px 12px; font-size: 11px; }
+      .summary-box table { font-size: 10.5px; }
+      .summary-box td, .summary-box th { padding: 2px 8px; }
+      .signature { display: flex !important; flex-direction: row !important; justify-content: space-around !important; gap: 20px !important; margin-top: 24px !important; }
+      .signature > div { flex: 1 !important; text-align: center !important; }
+      .signature .sign-space { height: 20px !important; margin: 2px 0 4px 0 !important; }
+      .signature div div:first-child { font-size: 12px !important; font-weight: 700 !important; }
+      .signature div div:last-child { font-size: 12px !important; }
+      .plan-table tr { page-break-inside: avoid; }
+      .plan-table thead { display: table-header-group; }
     }
-    .print-header {
-      display: none;
-    }
-    /* ---------- Responsive ---------- */
+    .print-header { display: none; }
     @media (max-width: 768px) {
-      .app-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-        padding: 20px;
-      }
-      .app-header h1 {
-        font-size: 22px;
-      }
-      .tab-btn {
-        padding: 10px 16px;
-        font-size: 13px;
-      }
-      .tab-content {
-        padding: 16px;
-      }
-      .form-row {
-        flex-direction: column;
-      }
-      .tkb-table {
-        font-size: 11px;
-      }
-      .tkb-cell-content select,
-      .tkb-cell-content input {
-        font-size: 10px;
-        min-width: 30px;
-      }
-      .add-form {
-        flex-direction: column;
-      }
-      .plan-table {
-        font-size: 12px;
-      }
-      .plan-table th,
-      .plan-table td {
-        padding: 4px 6px;
-      }
-      .plan-controls {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .signature {
-        flex-direction: column;
-        gap: 24px;
-      }
+      .app-header { flex-direction: column; align-items: stretch; gap: 12px; padding: 20px; }
+      .app-header h1 { font-size: 22px; }
+      .tab-btn { padding: 10px 16px; font-size: 13px; }
+      .tab-content { padding: 16px; }
+      .form-row { flex-direction: column; }
+      .tkb-table { font-size: 11px; }
+      .tkb-cell-content select, .tkb-cell-content input { font-size: 10px; min-width: 30px; }
+      .add-form { flex-direction: column; }
+      .plan-table { font-size: 12px; }
+      .plan-table th, .plan-table td { padding: 4px 6px; }
+      .plan-controls { flex-direction: column; align-items: stretch; }
+      .signature { flex-direction: column; gap: 24px; }
     }
   </style>
 </head>
@@ -661,6 +139,7 @@
       <button class="btn btn-outline" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2);" onclick="exportData()">📥 Xuất JSON</button>
       <button class="btn btn-outline" style="background:rgba(255,255,255,0.1);color:white;border-color:rgba(255,255,255,0.2);" onclick="document.getElementById('importJsonInput').click()">📤 Nhập JSON</button>
       <input type="file" id="importJsonInput" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-success" onclick="syncAllToSupabase()" style="background:#16a34a;color:white;">☁️ Đồng bộ lên server</button>
       <button class="btn btn-danger" onclick="resetData()" style="background:#dc2626;color:white;">🗑️ Xóa dữ liệu</button>
     </div>
   </header>
@@ -773,95 +252,44 @@
 </div>
 
 <script>
-  // ============================================================
-  //  KHỞI TẠO DỮ LIỆU VÀ LƯU TRỮ
-  // ============================================================
-  const STORAGE_KEY = 'khhdgd_data';
-
-  // HÀM LOẠI BỎ SỐ CUỐI CỦA TÊN MÔN (GDTC 1 -> GDTC, Toán 2 -> Toán)
-  function removeNumberFromSubject(subject) {
-    if (!subject) return subject;
-    return subject.replace(/\s*\d+$/, '');
-  }
-
-  // ============================================================
-  //  HÀM TẠO DỮ LIỆU MẪU (PPCT)
-  // ============================================================
-  function generateSamplePPCT() {
-    const sample = [];
-    let id = 1;
-
-    const mainSubjects = {
-      1: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
-      2: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
-      3: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1'],
-      4: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2'],
-      5: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2']
-    };
-
-    for (let grade = 1; grade <= 5; grade++) {
-      const subjectList = mainSubjects[grade] || [];
-      for (let sub of subjectList) {
-        let periodsPerWeek = 1;
-        if (sub.startsWith('Toán') || sub.startsWith('Tiếng việt') || sub.startsWith('GDTC')) {
-          periodsPerWeek = 2;
-        }
-        if (sub.startsWith('Tin học') || sub.startsWith('Công nghệ')) {
-          periodsPerWeek = 1;
-        }
-        if (sub.startsWith('Khoa học') || sub.startsWith('LSĐL')) {
-          periodsPerWeek = 2;
-        }
-
-        for (let week = 1; week <= 35; week++) {
-          for (let t = 1; t <= periodsPerWeek; t++) {
-            const ppct = t;
-            let lesson = `Bài ${week}: Nội dung bài học ${sub} tuần ${week} tiết ${ppct}`;
-            if (sub.startsWith('GDTC')) {
-              lesson = `Bài ${week}: Đội hình đội ngũ - Tiết ${ppct}`;
-            } else if (sub.startsWith('Tin học')) {
-              lesson = `Bài ${week}: Lý thuyết và thực hành Tin học - Tiết ${ppct}`;
-            } else if (sub.startsWith('Công nghệ')) {
-              lesson = `Bài ${week}: Công nghệ trong đời sống - Tiết ${ppct}`;
-            } else if (sub.startsWith('Toán')) {
-              lesson = `Bài ${week}: Luyện tập toán - Tiết ${ppct}`;
-            } else if (sub.startsWith('Tiếng việt')) {
-              lesson = `Bài ${week}: Luyện đọc và viết - Tiết ${ppct}`;
-            } else if (sub.startsWith('Khoa học')) {
-              lesson = `Bài ${week}: Khoa học tự nhiên - Tiết ${ppct}`;
-            } else if (sub.startsWith('LSĐL')) {
-              lesson = `Bài ${week}: Lịch sử và Địa lý - Tiết ${ppct}`;
-            }
-            const stem = (week % 3 === 0) ? 'Stem:Bài ' + (week+1) : '';
-            sample.push({
-              id: id++,
-              week: week,
-              ppct: ppct,
-              subject: sub,
-              grade: grade,
-              lesson: lesson,
-              stem: stem
-            });
-          }
-        }
-      }
+  // ================================================================
+  // 0. CẤU HÌNH TÊN CỘT SUPABASE (SỬA LẠI NẾU CẦN)
+  // ================================================================
+  const COLUMN_MAP = {
+    teachers: {
+      id: 'id',
+      unit: 'unit_name',
+      school: 'school_name',
+      name: 'teacher_name',
+      subject: 'subject_class',
+      year: 'sch'          // ← Nếu cột năm học của bạn tên khác (vd: nam_hoc), sửa ở đây
     }
-    return sample;
+    // Các bảng khác (ppct, timetable, weeks) giữ nguyên tên cột như trong code gốc
+  };
+
+  // ================================================================
+  // 1. KHỞI TẠO SUPABASE (KHÔNG KHAI BÁO LẠI BIẾN)
+  // ================================================================
+  const SUPABASE_URL = 'https://ohmwphdeeldmlxuuknny.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_DgxnOXel9t7woqYrfInl5Q_YogcW--c';
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.error('Supabase chưa được tải, tạo client tạm.');
+    window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 
-  const SAMPLE_TIMETABLE = [
-    { day:0, session:1, period:5, subject:'Tin học 1', grade:4, class:'B1' },
-    { day:0, session:1, period:6, subject:'Công nghệ 1', grade:4, class:'B1' },
-    { day:2, session:0, period:0, subject:'Tin học 1', grade:5, class:'C' },
-    { day:2, session:0, period:1, subject:'Công nghệ 1', grade:5, class:'C' },
-  ];
+  // ================================================================
+  // 2. DỮ LIỆU CỤC BỘ (localStorage) – GIỮ NGUYÊN
+  // ================================================================
+  const STORAGE_KEY = 'khhdgd_data';
 
   function getDefaultData() {
     return {
-      teacher: { unit: 'UBND Đặc khu Kiên Hải', school: 'Trường TH. Trần Quốc Toản', name: 'Võ Thanh Đậm', subject: 'Tin học_Công nghệ', year: '2026 - 2027' },
-      ppct: generateSamplePPCT(),
-      timetable: SAMPLE_TIMETABLE.slice(),
-      weeks: Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: i===0 ? '2026-09-07' : null, end: null }))
+      teacher: { unit: '', school: '', name: '', subject: '', year: '' },
+      ppct: [],
+      timetable: [],
+      weeks: Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }))
     };
   }
 
@@ -880,11 +308,9 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     const badge = document.getElementById('ppctBadge');
     if (badge) badge.textContent = data.ppct.length;
-    // Hiển thị thông báo lưu tự động (tùy chọn)
     showAutoSaveMsg();
   }
 
-  // Thông báo lưu tự động (toast)
   function showAutoSaveMsg() {
     const existing = document.querySelector('.toast-save-msg');
     if (existing) existing.remove();
@@ -893,10 +319,7 @@
     msg.textContent = '💾 Đã lưu tự động';
     msg.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2563eb; color:white; padding:8px 16px; border-radius:30px; font-weight:600; z-index:9999; opacity:0.9; transition:0.3s;';
     document.body.appendChild(msg);
-    setTimeout(() => {
-      msg.style.opacity = '0';
-      setTimeout(() => msg.remove(), 500);
-    }, 1500);
+    setTimeout(() => { msg.style.opacity = '0'; setTimeout(() => msg.remove(), 500); }, 1500);
   }
 
   function autoGenerateWeeks(weeks) {
@@ -927,22 +350,12 @@
     return data.ppct.reduce((m, p) => Math.max(m, p.id || 0), 0) + 1;
   }
 
-  // ============================================================
-  //  XÓA DỮ LIỆU & RESET
-  // ============================================================
-  function resetData() {
-    if (!confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu đã lưu và khôi phục về mặc định?')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    const def = getDefaultData();
-    def.weeks = autoGenerateWeeks(def.weeks);
-    saveData(def);
-    loadAll();
-    alert('✅ Đã xóa dữ liệu và khôi phục mặc định.');
-  }
+  // ================================================================
+  // 3. TẤT CẢ CÁC HÀM RENDER (GIỮ NGUYÊN TỪ FILE GỐC)
+  //    (Tôi đã chép đầy đủ từ code bạn gửi lần trước)
+  // ================================================================
 
-  // ============================================================
-  //  TAB: THÔNG TIN
-  // ============================================================
+  // --- loadTeacherInfo ---
   function loadTeacherInfo() {
     const data = loadData();
     document.getElementById('teacherUnit').value = data.teacher.unit || '';
@@ -952,22 +365,7 @@
     document.getElementById('teacherYear').value = data.teacher.year || '';
   }
 
-  function saveTeacherInfo() {
-    const data = loadData();
-    data.teacher.unit = document.getElementById('teacherUnit').value.trim();
-    data.teacher.school = document.getElementById('teacherSchool').value.trim();
-    data.teacher.name = document.getElementById('teacherName').value.trim();
-    data.teacher.subject = document.getElementById('teacherSubject').value.trim();
-    data.teacher.year = document.getElementById('teacherYear').value.trim();
-    saveData(data);
-    document.getElementById('teacherMsg').textContent = '✅ Đã lưu!';
-    setTimeout(() => document.getElementById('teacherMsg').textContent = '', 3000);
-    renderPlan();
-  }
-
-  // ============================================================
-  //  TAB: PPCT - CRUD
-  // ============================================================
+  // --- renderPPCT ---
   let ppctPage = 0;
   const PPCT_PAGE_SIZE = 100;
 
@@ -1040,18 +438,11 @@
     renderPPCT();
   }
 
+  // --- deletePPCT, addPPCTRow, editField, importPPCT, clearAllPPCT, loadSampleData ---
   function deletePPCT(id) {
     if (!confirm('Xóa dòng này?')) return;
     const data = loadData();
     data.ppct = data.ppct.filter(p => p.id !== id);
-    saveData(data);
-    renderPPCT();
-  }
-
-  function clearAllPPCT() {
-    if (!confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu PPCT?')) return;
-    const data = loadData();
-    data.ppct = [];
     saveData(data);
     renderPPCT();
   }
@@ -1165,6 +556,14 @@
     renderPPCT();
   }
 
+  function clearAllPPCT() {
+    if (!confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu PPCT?')) return;
+    const data = loadData();
+    data.ppct = [];
+    saveData(data);
+    renderPPCT();
+  }
+
   function loadSampleData() {
     if (!confirm('Thao tác này sẽ thêm dữ liệu mẫu vào PPCT hiện tại. Bạn có muốn tiếp tục?')) return;
     const data = loadData();
@@ -1183,9 +582,46 @@
     alert(`Đã thêm ${added} dòng mới. Tổng số dòng hiện tại: ${data.ppct.length}`);
   }
 
-  // ============================================================
-  //  TAB: THỜI KHÓA BIỂU
-  // ============================================================
+  // Hàm tạo dữ liệu mẫu (giữ nguyên)
+  function generateSamplePPCT() {
+    const sample = [];
+    let id = 1;
+    const mainSubjects = {
+      1: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
+      2: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3'],
+      3: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1'],
+      4: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2'],
+      5: ['GDTC 1', 'GDTC 2', 'Toán 1', 'Toán 2', 'Toán 3', 'Toán 4', 'Toán 5', 'Tiếng việt 1', 'Tiếng việt 2', 'Tiếng việt 3', 'Tin học 1', 'Công nghệ 1', 'Khoa học 1', 'Khoa học 2', 'LSĐL 1', 'LSĐL 2']
+    };
+    for (let grade = 1; grade <= 5; grade++) {
+      const subjectList = mainSubjects[grade] || [];
+      for (let sub of subjectList) {
+        let periodsPerWeek = 1;
+        if (sub.startsWith('Toán') || sub.startsWith('Tiếng việt') || sub.startsWith('GDTC')) periodsPerWeek = 2;
+        if (sub.startsWith('Tin học') || sub.startsWith('Công nghệ')) periodsPerWeek = 1;
+        if (sub.startsWith('Khoa học') || sub.startsWith('LSĐL')) periodsPerWeek = 2;
+
+        for (let week = 1; week <= 35; week++) {
+          for (let t = 1; t <= periodsPerWeek; t++) {
+            const ppct = t;
+            let lesson = `Bài ${week}: Nội dung bài học ${sub} tuần ${week} tiết ${ppct}`;
+            if (sub.startsWith('GDTC')) lesson = `Bài ${week}: Đội hình đội ngũ - Tiết ${ppct}`;
+            else if (sub.startsWith('Tin học')) lesson = `Bài ${week}: Lý thuyết và thực hành Tin học - Tiết ${ppct}`;
+            else if (sub.startsWith('Công nghệ')) lesson = `Bài ${week}: Công nghệ trong đời sống - Tiết ${ppct}`;
+            else if (sub.startsWith('Toán')) lesson = `Bài ${week}: Luyện tập toán - Tiết ${ppct}`;
+            else if (sub.startsWith('Tiếng việt')) lesson = `Bài ${week}: Luyện đọc và viết - Tiết ${ppct}`;
+            else if (sub.startsWith('Khoa học')) lesson = `Bài ${week}: Khoa học tự nhiên - Tiết ${ppct}`;
+            else if (sub.startsWith('LSĐL')) lesson = `Bài ${week}: Lịch sử và Địa lý - Tiết ${ppct}`;
+            const stem = (week % 3 === 0) ? 'Stem:Bài ' + (week+1) : '';
+            sample.push({ id: id++, week, ppct, subject: sub, grade, lesson, stem });
+          }
+        }
+      }
+    }
+    return sample;
+  }
+
+  // --- renderTKB ---
   const DAYS = ['Hai', 'Ba', 'Tư', 'Năm', 'Sáu'];
   const SESSIONS = ['Sáng', 'Chiều'];
   const PERIODS = [1,2,3,4,5,6,7];
@@ -1211,7 +647,6 @@
     table.appendChild(thead);
 
     const tbody = document.createElement('tbody');
-
     PERIODS.forEach(period => {
       const session = PERIOD_SESSION[period-1];
       const sessionLabel = SESSIONS[session];
@@ -1292,9 +727,7 @@
     saveData(data);
   }
 
-  // ============================================================
-  //  TAB: KHUNG THỜI GIAN
-  // ============================================================
+  // --- renderWeeks ---
   function renderWeeks() {
     const data = loadData();
     const tbody = document.getElementById('weeksBody');
@@ -1342,9 +775,7 @@
     setTimeout(() => document.getElementById('weeksMsg').textContent = '', 2000);
   }
 
-  // ============================================================
-  //  TAB: KẾ HOẠCH TUẦN (LOẠI BỎ SỐ TRONG TÊN MÔN KHI HIỂN THỊ)
-  // ============================================================
+  // --- renderPlan, loadWeekSelect, getWeekRange, formatDate, getDateFromWeek ---
   function loadWeekSelect() {
     const sel = document.getElementById('weekSelect');
     sel.innerHTML = '';
@@ -1382,6 +813,11 @@
     const d = new Date(base);
     d.setDate(d.getDate() + (week-1)*7 + dayOffset);
     return d.toISOString().slice(0,10);
+  }
+
+  function removeNumberFromSubject(subject) {
+    if (!subject) return subject;
+    return subject.replace(/\s*\d+$/, '');
   }
 
   function renderPlan() {
@@ -1475,7 +911,7 @@
 
     html += `</tbody></table>`;
 
-    // ----- THỐNG KÊ TỪ DỮ LIỆU THỰC TẾ -----
+    // Thống kê
     const countMap = {};
     tkbs.forEach(t => {
       if (t.subject) {
@@ -1483,9 +919,8 @@
         countMap[key] = (countMap[key] || 0) + 1;
       }
     });
-    const total = tkbs.filter(t => t.subject).length; // số tiết có môn
+    const total = tkbs.filter(t => t.subject).length;
 
-    // Bảng tổng hợp đầu tiên
     let summaryHtml = `<div class="summary-box"><strong>Tổng hợp số tiết trong tuần ${week}:</strong> <span style="font-weight:700;color:#2563eb;">${total} tiết</span><br>`;
     const parts = [];
     for (const [subject, count] of Object.entries(countMap)) {
@@ -1494,19 +929,16 @@
     summaryHtml += parts.join('; ');
     summaryHtml += '</div>';
 
-    // Bảng chi tiết TT – Nội dung – Số lượng (tự động, có thêm dòng Phòng máy)
     let detailRows = '';
     let idx = 1;
-    // Luôn thêm dòng Phòng máy với 3 tiết
     detailRows += `<tr><td>${idx}</td><td>Phòng máy</td><td>3</td><td></td></tr>`;
     idx++;
-    // Các môn học (sắp xếp theo tên)
     const subjectKeys = Object.keys(countMap).sort();
     subjectKeys.forEach(key => {
       detailRows += `<tr><td>${idx}</td><td>${key}</td><td>${countMap[key]}</td><td></td></tr>`;
       idx++;
     });
-    const totalWithLab = total + 3; // tổng bao gồm phòng máy
+    const totalWithLab = total + 3;
 
     const summaryTable = `
       <div class="summary-box" style="margin-top:12px;">
@@ -1520,7 +952,6 @@
       </div>
     `;
 
-    // Chữ ký hàng ngang
     const signHtml = `
       <div class="signature">
         <div>
@@ -1547,9 +978,7 @@
     document.getElementById('planContainer').innerHTML = html + summaryHtml + summaryTable + signHtml;
   }
 
-  // ============================================================
-  //  IMPORT / EXPORT JSON
-  // ============================================================
+  // --- exportData, importData, resetData ---
   function exportData() {
     const data = loadData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1586,9 +1015,180 @@
     event.target.value = '';
   }
 
-  // ============================================================
-  //  KHỞI ĐỘNG
-  // ============================================================
+  function resetData() {
+    if (!confirm('Bạn có chắc muốn xóa toàn bộ dữ liệu đã lưu và khôi phục về mặc định?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    const def = getDefaultData();
+    def.weeks = autoGenerateWeeks(def.weeks);
+    saveData(def);
+    loadAll();
+    alert('✅ Đã xóa dữ liệu và khôi phục mặc định.');
+  }
+
+  // --- saveTeacherInfo ---
+  function saveTeacherInfo() {
+    const data = loadData();
+    data.teacher.unit = document.getElementById('teacherUnit').value.trim();
+    data.teacher.school = document.getElementById('teacherSchool').value.trim();
+    data.teacher.name = document.getElementById('teacherName').value.trim();
+    data.teacher.subject = document.getElementById('teacherSubject').value.trim();
+    data.teacher.year = document.getElementById('teacherYear').value.trim();
+    saveData(data);
+    document.getElementById('teacherMsg').textContent = '✅ Đã lưu!';
+    setTimeout(() => document.getElementById('teacherMsg').textContent = '', 3000);
+    renderPlan();
+  }
+
+  // ================================================================
+  // 4. ĐỒNG BỘ LÊN SUPABASE (SỬ DỤNG CẤU HÌNH CỘT)
+  // ================================================================
+  async function syncAllToSupabase() {
+    try {
+      const data = loadData();
+
+      // --- Teacher ---
+      const teacherPayload = {
+        [COLUMN_MAP.teachers.id]: '1', // dùng id cố định để upsert
+        [COLUMN_MAP.teachers.unit]: data.teacher.unit,
+        [COLUMN_MAP.teachers.school]: data.teacher.school,
+        [COLUMN_MAP.teachers.name]: data.teacher.name,
+        [COLUMN_MAP.teachers.subject]: data.teacher.subject,
+        [COLUMN_MAP.teachers.year]: data.teacher.year
+      };
+      const { error: e1 } = await window.supabase
+        .from('khgd_teachers')
+        .upsert(teacherPayload, { onConflict: 'id' });
+      if (e1) throw e1;
+
+      // --- PPCT ---
+      const { error: e2 } = await window.supabase
+        .from('khgd_ppct')
+        .upsert(data.ppct, { onConflict: 'id' });
+      if (e2) throw e2;
+
+      // --- Timetable ---
+      const { error: e3 } = await window.supabase
+        .from('khgd_timetable')
+        .upsert(data.timetable, { onConflict: 'id' });
+      if (e3) throw e3;
+
+      // --- Weeks ---
+      const { error: e4 } = await window.supabase
+        .from('khgd_weeks')
+        .upsert(data.weeks, { onConflict: 'week' });
+      if (e4) throw e4;
+
+      console.log('✅ Đồng bộ lên Supabase thành công.');
+      alert('Đồng bộ dữ liệu lên server thành công!');
+    } catch (error) {
+      console.error('❌ Lỗi đồng bộ:', error);
+      alert('Lỗi đồng bộ: ' + error.message);
+    }
+  }
+
+  // ================================================================
+  // 5. TẢI DỮ LIỆU TỪ SUPABASE XUỐNG
+  // ================================================================
+  async function loadDataFromSupabase() {
+    try {
+      const [teacherRes, ppctRes, timetableRes, weeksRes] = await Promise.all([
+        window.supabase.from('khgd_teachers').select('*'),
+        window.supabase.from('khgd_ppct').select('*'),
+        window.supabase.from('khgd_timetable').select('*'),
+        window.supabase.from('khgd_weeks').select('*')
+      ]);
+
+      const teacher = teacherRes.data?.[0] || {};
+      const data = {
+        teacher: {
+          unit: teacher[COLUMN_MAP.teachers.unit] || '',
+          school: teacher[COLUMN_MAP.teachers.school] || '',
+          name: teacher[COLUMN_MAP.teachers.name] || '',
+          subject: teacher[COLUMN_MAP.teachers.subject] || '',
+          year: teacher[COLUMN_MAP.teachers.year] || ''
+        },
+        ppct: ppctRes.data || [],
+        timetable: timetableRes.data || [],
+        weeks: weeksRes.data || []
+      };
+      if (data.weeks.length === 0) {
+        data.weeks = Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }));
+        data.weeks = autoGenerateWeeks(data.weeks);
+      }
+      saveData(data);
+      loadAll();
+      console.log('✅ Đồng bộ từ Supabase thành công.');
+    } catch (error) {
+      console.error('❌ Lỗi tải dữ liệu:', error);
+      alert('Không thể tải dữ liệu từ Supabase. Kiểm tra console.');
+    }
+  }
+
+  // ================================================================
+  // 6. REAL-TIME SYNC
+  // ================================================================
+  function initRealtimeSync() {
+    window.supabase
+      .channel('public-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+        console.log('🔔 Phát hiện thay đổi từ xa:', payload);
+        loadDataFromSupabase();
+      })
+      .subscribe();
+  }
+
+  // ================================================================
+  // 7. XỬ LÝ ĐĂNG NHẬP / ĐĂNG KÝ
+  // ================================================================
+  let isLogin = true;
+
+  async function handleAuth() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    if (!email || !password) { alert('Vui lòng nhập đầy đủ Email và Mật khẩu!'); return; }
+
+    try {
+      if (isLogin) {
+        const { error } = await window.supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        alert('Đăng nhập thành công!');
+        document.getElementById('auth-modal').style.display = 'none';
+        await loadDataFromSupabase();
+        location.reload();
+      } else {
+        const { error } = await window.supabase.auth.signUp({ email, password });
+        if (error) throw error;
+        alert('Đăng ký thành công! Vui lòng kiểm tra email xác nhận (nếu có) hoặc đăng nhập lại.');
+        isLogin = true;
+        document.getElementById('auth-title').innerText = 'Đăng nhập hệ thống';
+        document.getElementById('mode-toggle').innerText = 'Chưa có tài khoản? Đăng ký';
+      }
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  }
+
+  async function forgotPassword() {
+    const email = document.getElementById('email').value;
+    if (!email) { alert('Vui lòng nhập email vào ô trên trước khi bấm Quên mật khẩu!'); return; }
+    try {
+      const { error } = await window.supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      alert('Đã gửi hướng dẫn đặt lại mật khẩu vào email của bạn.');
+    } catch (err) {
+      alert('Lỗi: ' + err.message);
+    }
+  }
+
+  function toggleMode() {
+    isLogin = !isLogin;
+    document.getElementById('auth-title').innerText = isLogin ? 'Đăng nhập hệ thống' : 'Đăng ký tài khoản mới';
+    document.getElementById('mode-toggle').innerText = isLogin ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập';
+  }
+
+  // ================================================================
+  // 8. HÀM LOADALL (KHỞI TẠO GIAO DIỆN)
+  // ================================================================
   function loadAll() {
     loadTeacherInfo();
     renderPPCT();
@@ -1603,66 +1203,84 @@
     if (badge) badge.textContent = data.ppct.length;
   }
 
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      const tabId = this.dataset.tab;
-      document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-    });
-  });
-
+  // ================================================================
+  // 9. GÁN CÁC HÀM RA GLOBAL
+  // ================================================================
+  window.loadAll = loadAll;
+  window.loadDataFromSupabase = loadDataFromSupabase;
+  window.syncAllToSupabase = syncAllToSupabase;
+  window.handleAuth = handleAuth;
+  window.forgotPassword = forgotPassword;
+  window.toggleMode = toggleMode;
   window.exportData = exportData;
   window.importData = importData;
+  window.resetData = resetData;
   window.saveTeacherInfo = saveTeacherInfo;
+  window.addPPCTRow = addPPCTRow;
+  window.deletePPCT = deletePPCT;
+  window.editField = editField;
   window.importPPCT = importPPCT;
   window.clearAllPPCT = clearAllPPCT;
   window.loadSampleData = loadSampleData;
-  window.renderPPCT = renderPPCT;
   window.changePPCTPage = changePPCTPage;
-  window.deletePPCT = deletePPCT;
-  window.addPPCTRow = addPPCTRow;
-  window.editField = editField;
-  window.renderPlan = renderPlan;
-  window.saveWeeks = saveWeeks;
+  window.updateTKB = updateTKB;
   window.updateWeek = updateWeek;
-  window.loadAll = loadAll;
-  window.resetData = resetData;
+  window.saveWeeks = saveWeeks;
+  window.renderPlan = renderPlan;
+  window.renderPPCT = renderPPCT;
+  window.renderTKB = renderTKB;
+  window.renderWeeks = renderWeeks;
 
-  document.getElementById('filterSubject').addEventListener('change', renderPPCT);
-  document.getElementById('filterGrade').addEventListener('change', renderPPCT);
-  document.getElementById('filterWeek').addEventListener('change', renderPPCT);
+  // ================================================================
+  // 10. KHỞI ĐỘNG KHI TRANG TẢI XONG
+  // ================================================================
+  window.addEventListener('DOMContentLoaded', async () => {
+    const { data: { user } } = await window.supabase.auth.getUser();
+    if (user) {
+      document.getElementById('auth-modal').style.display = 'none';
+      await loadDataFromSupabase();
+    } else {
+      document.getElementById('auth-modal').style.display = 'block';
+      loadAll();
+    }
+    initRealtimeSync();
+  });
 
-  (function fixWeeks() {
-    const data = loadData();
-    let changed = false;
-    data.weeks.forEach((w, idx) => {
-      if (!w.start) {
-        if (idx === 0) {
-          w.start = '2026-09-07';
-          const d = new Date(w.start);
-          d.setDate(d.getDate() + 4);
-          w.end = d.toISOString().slice(0,10);
-        } else {
-          const prev = data.weeks[idx-1];
-          if (prev && prev.start) {
-            const d = new Date(prev.start);
-            d.setDate(d.getDate() + 7);
-            w.start = d.toISOString().slice(0,10);
-            const endD = new Date(d);
-            endD.setDate(endD.getDate() + 4);
-            w.end = endD.toISOString().slice(0,10);
-          }
-        }
-        changed = true;
+  console.log('✅ Ứng dụng đã sẵn sàng với Supabase (không lỗi khai báo lại).');
+</script>
+
+<!-- Modal Đăng nhập (Mặc định đang ẩn) -->
+<div id="auth-modal" style="display:none; position:fixed; top:20%; left:30%; background: #fff; padding:30px; border:1px solid #ccc; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1)">
+  <h3 id="auth-title">Đăng nhập hệ thống</h3>
+  <!-- ... form đăng nhập bằng email của bạn ... -->
+</div>
+
+<!-- CÁCH SỬA: Đặt nút đăng nhập Google RA NGOÀI Modal để dễ nhìn thấy -->
+<button onclick="loginWithGoogle()" style="padding:10px 20px; background:#4285F4; color:white; border:none; border-radius:4px; cursor:pointer;">Đăng nhập với Google</button>
+<script>
+  // Hàm xử lý khi bấm nút Đăng nhập Google
+   // Hàm xử lý khi bấm nút Đăng nhập Google
+  async function loginWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // 👉 Đã đổi thành đúng đường dẫn web của app bạn vừa cung cấp
+        redirectTo: 'https://vothanhdamkg1982-lang.github.io/Ke-Hoach-GD-1.4/'
       }
     });
-    if (changed) saveData(data);
-  })();
+    if (error) alert("Lỗi đăng nhập: " + error.message);
+  }
 
-  loadAll();
-  console.log('✅ App KHHĐGD đã sẵn sàng.');
+  // Hàm tự động kích hoạt khi tải lại trang web
+  window.addEventListener('load', async function() {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+      console.log("✅ Đã đăng nhập thành công!");
+    } else {
+      console.log("⏳ Chưa có tài khoản đăng nhập.");
+    }
+  });
 </script>
 </body>
 </html>
