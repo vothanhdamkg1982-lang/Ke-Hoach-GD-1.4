@@ -304,23 +304,42 @@
     try { return JSON.parse(raw); } catch { return getDefaultData(); }
   }
 
-  function saveData(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    const badge = document.getElementById('ppctBadge');
-    if (badge) badge.textContent = data.ppct.length;
-    showAutoSaveMsg();
-  }
+  async function saveData(data) {
+  try {
+    // 1. Gửi dữ liệu lên Supabase (Đây là phần quan trọng nhất để đồng bộ)
+    // Dựa vào cấu trúc bảng của bạn, tôi chia nhỏ dữ liệu để lưu vào đúng bảng.
+    if (data.timetable) await supabase.from('khgd_timetable').upsert(data.timetable);
+    if (data.ppct) await supabase.from('khgd_ppct').upsert(data.ppct);
+    if (data.teachers) await supabase.from('khgd_teachers').upsert(data.teachers);
+    if (data.weeks) await supabase.from('khgd_weeks').upsert(data.weeks);
 
-  function showAutoSaveMsg() {
-    const existing = document.querySelector('.toast-save-msg');
-    if (existing) existing.remove();
-    const msg = document.createElement('div');
-    msg.className = 'toast-save-msg';
-    msg.textContent = '💾 Đã lưu tự động';
-    msg.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2563eb; color:white; padding:8px 16px; border-radius:30px; font-weight:600; z-index:9999; opacity:0.9; transition:0.3s;';
-    document.body.appendChild(msg);
-    setTimeout(() => { msg.style.opacity = '0'; setTimeout(() => msg.remove(), 500); }, 1500);
+    // (Tùy chọn) Cứ giữ lại dòng localStorage này để làm dữ liệu dự phòng khi máy bị mất mạng
+    // localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+    // 2. Cập nhật huy hiệu (Badge) số lượng lên giao diện
+    const badge = document.getElementById('ppctBadge');
+    if (badge) badge.textContent = data.ppct ? data.ppct.length : 0;
+
+    // 3. Hiện thông báo thành công (Màu xanh)
+    showAutoSaveMsg('✅ Đã đồng bộ dữ liệu lên Server thành công!');
+
+  } catch (error) {
+    console.error("Lỗi khi đồng bộ lên Server:", error);
+    showAutoSaveMsg('❌ Lỗi đồng bộ Server: ' + error.message);
   }
+}
+
+// Hàm hiển thị thông báo (Đã sửa để nhận nội dung thông báo từ tham số)
+function showAutoSaveMsg(msg = '✅ Đã lưu tự động') {
+  const existing = document.querySelector('.toast-save-msg');
+  if (existing) existing.remove();
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'toast-save-msg';
+  msgDiv.textContent = msg; // Thay vì cứng nhắc chữ "Đã lưu", nó sẽ hiện nội dung msg
+  msgDiv.style.cssText = 'position:fixed; bottom:20px; right:20px; background:#2563eb; color:white; padding:8px 16px; border-radius:8px; box-shadow:0 4px 6px rgba(0,0,0,0.1); z-index:9999; font-weight:500;';
+  document.body.appendChild(msgDiv);
+  setTimeout(() => { msgDiv.style.opacity = '0'; setTimeout(() => { msgDiv.remove(); }, 500); }, 1500);
+}
 
   function autoGenerateWeeks(weeks) {
     const result = [];
