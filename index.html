@@ -7,53 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* CSS mới cho Tabs, đẹp và mượt hơn */
-.tabs {
-    background: #ffffff;
-    border-radius: 16px 16px 0 0;
-    padding: 10px 10px 0 10px;
-    box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-.tab-btn {
-    padding: 12px 24px;
-    font-weight: 600;
-    font-size: 14px;
-    color: #64748b;
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    border-radius: 12px 12px 0 0;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-family: inherit;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.tab-btn .tab-icon {
-    font-size: 18px;
-}
-.tab-btn:hover {
-    color: #0f172a;
-    background: #f8fafc;
-}
-.tab-btn.active {
-    color: #2563eb;
-    background: #f8faff;
-    border-bottom-color: #2563eb;
-}
-.tab-btn .badge {
-    background: #2563eb;
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 20px;
-    margin-left: 4px;
-}
     @page { size: A4; margin: 12mm 10mm 12mm 10mm; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Be Vietnam Pro', sans-serif; background: #f0f4f9; color: #1e293b; padding: 20px; min-height: 100vh; padding-top: 80px; }
@@ -209,25 +162,13 @@
     </div>
   </header>
 
-  <!-- Code Tabs mới, hiện đại và tối ưu -->
-<div class="tabs no-print">
-    <button class="tab-btn active" data-tab="tab-plan" onclick="switchTab('tab-plan')">
-        <span class="tab-icon">📅</span> Kế hoạch tuần
-    </button>
-    <button class="tab-btn" data-tab="tab-info" onclick="switchTab('tab-info')">
-        <span class="tab-icon">👤</span> Thông tin
-    </button>
-    <button class="tab-btn" data-tab="tab-ppct" onclick="switchTab('tab-ppct')">
-        <span class="tab-icon">📚</span> PPCT 
-        <span class="badge" id="ppctBadge">0</span>
-    </button>
-    <button class="tab-btn" data-tab="tab-tkb" onclick="switchTab('tab-tkb')">
-        <span class="tab-icon">🕒</span> Thời khóa biểu
-    </button>
-    <button class="tab-btn" data-tab="tab-weeks" onclick="switchTab('tab-weeks')">
-        <span class="tab-icon">📆</span> Khung thời gian
-    </button>
-</div>
+  <div class="tabs no-print">
+    <button class="tab-btn active" data-tab="tab-plan" onclick="switchTab('tab-plan')">📅 Kế hoạch tuần</button>
+    <button class="tab-btn" data-tab="tab-info" onclick="switchTab('tab-info')">👤 Thông tin</button>
+    <button class="tab-btn" data-tab="tab-ppct" onclick="switchTab('tab-ppct')">📚 PPCT <span class="badge" id="ppctBadge">0</span></button>
+    <button class="tab-btn" data-tab="tab-tkb" onclick="switchTab('tab-tkb')">🕒 Thời khóa biểu</button>
+    <button class="tab-btn" data-tab="tab-weeks" onclick="switchTab('tab-weeks')">📆 Khung thời gian</button>
+  </div>
 
   <div id="tab-plan" class="tab-content active">
     <div class="plan-controls no-print">
@@ -327,43 +268,14 @@
     @Copyright Võ Thanh Đậm 2026 - Dữ liệu lưu trữ cục bộ. Xuất/Nhập JSON để sao lưu.
   </div>
 </div>
-// Hàm chuyển đổi Tab mượt mà
-function switchTab(tabId) {
-    // 1. Ẩn tất cả nội dung
-    document.querySelectorAll('.tab-content').forEach(el => {
-        el.classList.remove('active');
-    });
-    // 2. Bỏ active tất cả nút
-    document.querySelectorAll('.tab-btn').forEach(el => {
-        el.classList.remove('active');
-    });
-    // 3. Hiện nội dung được chọn
-    document.getElementById(tabId).classList.add('active');
-    // 4. Bôi đậm nút được chọn
-    document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
-}
-// Hàm chuyển đổi Tab mượt mà (Sửa lỗi Uncaught ReferenceError)
-window.switchTab = function(tabId) {
-    // 1. Ẩn tất cả nội dung
-    document.querySelectorAll('.tab-content').forEach(el => {
-        el.classList.remove('active');
-    });
-    // 2. Bỏ active tất cả nút
-    document.querySelectorAll('.tab-btn').forEach(el => {
-        el.classList.remove('active');
-    });
-    // 3. Hiện nội dung được chọn
-    document.getElementById(tabId).classList.add('active');
-    // 4. Bôi đậm nút được chọn
-    document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
-};
+
 <script>
 // ================================================================
-// 1. CẤU HÌNH SUPABASE & LOGIN/LOGOUT (Đã sửa Redirect URL)
+// 1. CẤU HÌNH SUPABASE & LOGIN/LOGOUT
 // ================================================================
 const SUPABASE_URL = 'https://ohmwphdeeldmlxuuknny.supabase.co';
 // 👇 Thay thế chuỗi sau bằng Anon Key thật của bạn
-const SUPABASE_ANON_KEY = 'sb_publishable_DgxnOXel9t7woqYrfInl5Q_YogcW--c'; 
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; 
 
 let supabaseClient = null;
 
@@ -389,8 +301,7 @@ async function handleGoogleLogin() {
     if (!client) { alert("⚠️ Vui lòng tải lại trang (F5) và đợi 2 giây rồi thử lại."); return; }
     const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
-        // 👇 QUAN TRỌNG: Đổi đường dẫn redirect về đúng trang bạn đang chạy
-        options: { redirectTo: 'https://vothanhdamkg1982-lang.github.io/Ke-Hoach-GD-1.4/' }
+        options: { redirectTo: window.location.origin }
     });
     if (error) alert('Lỗi đăng nhập: ' + error.message);
 }
@@ -1165,7 +1076,7 @@ function saveTeacherInfo() {
 }
 
 // ================================================================
-// 4. ĐỒNG BỘ LÊN SUPABASE (VÁ LỖI 400 & 403 CUỐI CÙNG)
+// 4. ĐỒNG BỘ LÊN SUPABASE (VÁ LỖI 403/400 LẦN CUỐI)
 // ================================================================
 async function syncAllToSupabase() {
     if (!currentUser) {
@@ -1184,30 +1095,30 @@ async function syncAllToSupabase() {
         const data = loadData();
         console.log('Bắt đầu đồng bộ dữ liệu lên Supabase...');
 
-        // 1. VÁ LỖI 403: Cố gắng tạo chính sách tự động nếu bị chặn
-        try {
-            await client.rpc('create_rls_policy_if_not_exists', { table_name: 'khgd_teachers' });
-        } catch(e) { /* Không sao, cứ tiếp tục */ }
-
-        // 2. Khgd_teachers
-        const teacherPayload = { id: 1, unit_name: data.teacher.unit || '', school_name: data.teacher.school || '', teacher_name: data.teacher.name || '', subject_class: data.teacher.subject || '', sch: data.teacher.year || '' };
+        // 1. Khgd_teachers
+        const teacherPayload = { 
+            id: 1, 
+            unit_name: data.teacher.unit || '', 
+            school_name: data.teacher.school || '', 
+            teacher_name: data.teacher.name || '', 
+            subject_class: data.teacher.subject || '', 
+            sch: data.teacher.year || '' 
+        };
         await client.from('khgd_teachers').upsert(teacherPayload, { onConflict: 'id' });
 
-        // 3. Khgd_ppct (Đã tối ưu để né lỗi onConflict)
-        const uniquePPCT = [];
-        const seen = new Set();
-        data.ppct.forEach(item => {
-            const key = `${item.week}-${item.ppct}-${item.subject}-${item.grade}`;
-            if (!seen.has(key)) {
-                seen.add(key);
-                uniquePPCT.push({ week: item.week, ppct: item.ppct, subject: item.subject, grade: item.grade, lesson: item.lesson, stem: item.stem || '' });
-            }
-        });
-        await client.from('khgd_ppct').upsert(uniquePPCT, { onConflict: 'week, ppct, subject, grade' });
+        // 2. Khgd_ppct
+        const ppctPayload = data.ppct.map(item => ({ 
+            week: item.week, 
+            ppct: item.ppct, 
+            subject: item.subject, 
+            grade: item.grade, 
+            lesson: item.lesson, 
+            stem: item.stem || '' 
+        }));
+        await client.from('khgd_ppct').upsert(ppctPayload, { onConflict: 'id' });
 
-        // 4. Khgd_timetable (Sửa lỗi 400 bằng cách tạo id tạm)
-        const timetablePayload = data.timetable.map((item, index) => ({ 
-            id: 100000 + index, 
+        // 3. Khgd_timetable
+        const timetablePayload = data.timetable.map(item => ({ 
             day: item.day, 
             session: item.session, 
             period: item.period, 
@@ -1217,20 +1128,19 @@ async function syncAllToSupabase() {
         }));
         await client.from('khgd_timetable').upsert(timetablePayload, { onConflict: 'id' });
 
-        // 5. Khgd_weeks (Sửa lỗi 400 bằng cách đảm bảo dữ liệu hợp lệ)
-        let weeksPayload = data.weeks;
-        if (weeksPayload.length === 0) {
-            weeksPayload = Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }));
-            weeksPayload = autoGenerateWeeks(weeksPayload);
-        }
-        const cleanWeeks = weeksPayload.filter(w => w.week !== null && w.week !== undefined);
-        await client.from('khgd_weeks').upsert(cleanWeeks, { onConflict: 'week' });
+        // 4. Khgd_weeks
+        const weeksPayload = data.weeks.map(item => ({ 
+            week: item.week, 
+            start: item.start, 
+            end: item.end 
+        }));
+        await client.from('khgd_weeks').upsert(weeksPayload, { onConflict: 'week' });
 
         alert('☁️ Đã đồng bộ dữ liệu lên Server thành công!');
         console.log('Đồng bộ hoàn tất.');
     } catch (error) {
         console.error('❌ Lỗi chi tiết lần cuối:', error);
-        alert('❌ Lỗi đồng bộ: ' + (error.message || error.error_description || 'Lỗi không xác định. Xem Console F12 chi tiết.'));
+        alert('❌ Lỗi đồng bộ: ' + (error.message || error.error_description || 'Lỗi không xác định.'));
     } finally {
         syncBtn.innerHTML = '☁️ Đồng bộ lên server';
         syncBtn.style.pointerEvents = 'auto';
@@ -1282,7 +1192,17 @@ async function loadDataFromSupabase() {
 }
 
 // ================================================================
-// 6. KHỞI TẠO APP & GÁN RA GLOBAL
+// 6. HÀM CHUYỂN TAB (Đã thêm vào để hết lỗi click)
+// ================================================================
+window.switchTab = function(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+};
+
+// ================================================================
+// 7. KHỞI TẠO APP & GÁN RA GLOBAL
 // ================================================================
 function loadAll() {
     loadTeacherInfo(); renderPPCT(); renderTKB(); renderWeeks(); loadWeekSelect(); renderPlan();
@@ -1315,7 +1235,7 @@ window.renderTKB = renderTKB;
 window.renderWeeks = renderWeeks;
 
 // ================================================================
-// 7. KHỞI ĐỘNG KHI TẢI TRANG
+// 8. KHỞI ĐỘNG KHI TẢI TRANG
 // ================================================================
 window.addEventListener('DOMContentLoaded', async () => {
     const client = initSupabase();
