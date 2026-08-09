@@ -1186,26 +1186,7 @@ console.log(
     `✅ Đã đồng bộ ${ppctPayload.length} dòng PPCT`
 );
 
-        if (ppctPayload.length > 0) {
-
-            const { error: ppctError } = await client
-                .from('khgd_ppct')
-                .upsert(
-                    ppctPayload,
-                    {
-                        onConflict:
-                            'user_id,week,ppct,subject,grade'
-                    }
-                );
-
-            if (ppctError) {
-                throw new Error(
-                    'Lỗi khgd_ppct: ' + ppctError.message
-                );
-            }
-        }
-
-
+        
         // ========================================================
         // 3. THỜI KHÓA BIỂU
         // ========================================================
