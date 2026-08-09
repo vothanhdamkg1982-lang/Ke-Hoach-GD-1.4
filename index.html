@@ -1161,7 +1161,18 @@ const ppctPayload = data.ppct.map(item => ({
     lesson: item.lesson,
     stem: item.stem || ''
 }));
+const ids = ppctPayload.map(item => item.id);
 
+const uniqueIds = new Set(ids);
+
+console.log('========== KIỂM TRA ID PPCT ==========');
+console.log('Tổng số PPCT:', ppctPayload.length);
+console.log('ID duy nhất:', uniqueIds.size);
+console.log(
+    'ID trống:',
+    ids.filter(id => !id).length
+);
+console.log('======================================');
 const PPCT_BATCH_SIZE = 500;
 
 for (let i = 0; i < ppctPayload.length; i += PPCT_BATCH_SIZE) {
