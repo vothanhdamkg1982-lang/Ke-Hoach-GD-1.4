@@ -1081,119 +1081,466 @@ function saveTeacherInfo() {
 // ================================================================
 // 4. ĐỒNG BỘ LÊN SUPABASE (VÁ LỖI 403/400 LẦN CUỐI)
 // ================================================================
+// ================================================================
+// 4. ĐỒNG BỘ DỮ LIỆU LÊN SUPABASE
+// PHIÊN BẢN AN TOÀN - THEO USER_ID
+// ================================================================
+
 async function syncAllToSupabase() {
     if (!currentUser) {
-        alert('Vui lòng đăng nhập bằng tài khoản Google trước khi đồng bộ!');
+        alert('⚠️ Vui lòng đăng nhập bằng tài khoản Google trước khi đồng bộ!');
         return;
     }
-    const client = initSupabase();
-    if (!client) return;
 
+    const client = initSupabase();
+
+    if (!client) {
+        alert('❌ Không kết nối được Supabase!');
+        return;
+    }
+
+    const userId = currentUser.id;
     const syncBtn = document.getElementById('btn-sync');
-    syncBtn.innerHTML = '⏳ Đang đồng bộ...';
-    syncBtn.style.pointerEvents = 'none';
-    syncBtn.style.opacity = '0.7';
+
+    if (syncBtn) {
+        syncBtn.innerHTML = '⏳ Đang đồng bộ...';
+        syncBtn.style.pointerEvents = 'none';
+        syncBtn.style.opacity = '0.7';
+    }
 
     try {
         const data = loadData();
-        console.log('Bắt đầu đồng bộ dữ liệu lên Supabase...');
 
-        // 1. Khgd_teachers
-        const teacherPayload = { 
-            id: 1, 
-            unit_name: data.teacher.unit || '', 
-            school_name: data.teacher.school || '', 
-            teacher_name: data.teacher.name || '', 
-            subject_class: data.teacher.subject || '', 
-            sch: data.teacher.year || '' 
+        console.log('========================================');
+        console.log('☁️ BẮT ĐẦU ĐỒNG BỘ SUPABASE');
+        console.log('User ID:', userId);
+        console.log('========================================');
+
+
+        // ========================================================
+        // 1. THÔNG TIN GIÁO VIÊN
+        // ========================================================
+
+        const teacherPayload = {
+            user_id: userId,
+            unit_name: data.teacher?.unit || '',
+            school_name: data.teacher?.school || '',
+            teacher_name: data.teacher?.name || '',
+            subject_class: data.teacher?.subject || '',
+            sch: data.teacher?.year || ''
         };
-        await client.from('khgd_teachers').upsert(teacherPayload, { onConflict: 'id' });
 
-        // 2. Khgd_ppct
-        const ppctPayload = data.ppct.map(item => ({ 
-            week: item.week, 
-            ppct: item.ppct, 
-            subject: item.subject, 
-            grade: item.grade, 
-            lesson: item.lesson, 
-            stem: item.stem || '' 
+        const { error: teacherError } = await client
+            .from('khgd_teachers')
+            .upsert(
+                teacherPayload,
+                {
+                    onConflict: 'user_id'
+                }
+            );
+
+        if (teacherError) {
+            throw new Error(
+                'Lỗi khgd_teachers: ' + teacherError.message
+            );
+        }
+
+
+        // ========================================================
+        // 2. PHÂN PHỐI CHƯƠNG TRÌNH - PPCT
+        // ========================================================
+
+        const ppctPayload = (data.ppct || []).map(item => ({
+            user_id: userId,
+            week: Number(item.week),
+            ppct: Number(item.ppct),
+            subject: item.subject || '',
+            grade: Number(item.grade),
+            lesson: item.lesson || '',
+            stem: item.stem || ''
         }));
-        await client.from('khgd_ppct').upsert(ppctPayload, { onConflict: 'id' });
 
-        // 3. Khgd_timetable
-        const timetablePayload = data.timetable.map(item => ({ 
-            day: item.day, 
-            session: item.session, 
-            period: item.period, 
-            subject: item.subject, 
-            grade: item.grade, 
-            class: item.class 
+        if (ppctPayload.length > 0) {
+
+            const { error: ppctError } = await client
+                .from('khgd_ppct')
+                .upsert(
+                    ppctPayload,
+                    {
+                        onConflict:
+                            'user_id,week,ppct,subject,grade'
+                    }
+                );
+
+            if (ppctError) {
+                throw new Error(
+                    'Lỗi khgd_ppct: ' + ppctError.message
+                );
+            }
+        }
+
+
+        // ========================================================
+        // 3. THỜI KHÓA BIỂU
+        // ========================================================
+
+        const timetablePayload = (data.timetable || []).map(item => ({
+            user_id: userId,
+            day: Number(item.day),
+            session: Number(item.session),
+            period: Number(item.period),
+            subject: item.subject || '',
+            grade: Number(item.grade),
+            class: item.class || ''
         }));
-        await client.from('khgd_timetable').upsert(timetablePayload, { onConflict: 'id' });
 
-        // 4. Khgd_weeks
-        const weeksPayload = data.weeks.map(item => ({ 
-            week: item.week, 
-            start: item.start, 
-            end: item.end 
+        if (timetablePayload.length > 0) {
+
+            const { error: timetableError } = await client
+                .from('khgd_timetable')
+                .upsert(
+                    timetablePayload,
+                    {
+                        onConflict:
+                            'user_id,day,session,period'
+                    }
+                );
+
+            if (timetableError) {
+                throw new Error(
+                    'Lỗi khgd_timetable: ' +
+                    timetableError.message
+                );
+            }
+        }
+
+
+        // ========================================================
+        // 4. KHUNG THỜI GIAN 35 TUẦN
+        // ========================================================
+
+        const weeksPayload = (data.weeks || []).map(item => ({
+            user_id: userId,
+            week: Number(item.week),
+            start: item.start || null,
+            end: item.end || null
         }));
-        await client.from('khgd_weeks').upsert(weeksPayload, { onConflict: 'week' });
 
-        alert('☁️ Đã đồng bộ dữ liệu lên Server thành công!');
-        console.log('Đồng bộ hoàn tất.');
+        if (weeksPayload.length > 0) {
+
+            const { error: weeksError } = await client
+                .from('khgd_weeks')
+                .upsert(
+                    weeksPayload,
+                    {
+                        onConflict: 'user_id,week'
+                    }
+                );
+
+            if (weeksError) {
+                throw new Error(
+                    'Lỗi khgd_weeks: ' +
+                    weeksError.message
+                );
+            }
+        }
+
+
+        // ========================================================
+        // HOÀN TẤT
+        // ========================================================
+
+        console.log('========================================');
+        console.log('✅ ĐỒNG BỘ THÀNH CÔNG');
+        console.log('Teacher:', 1);
+        console.log('PPCT:', ppctPayload.length);
+        console.log('TKB:', timetablePayload.length);
+        console.log('Weeks:', weeksPayload.length);
+        console.log('========================================');
+
+        alert(
+            '☁️ Đồng bộ thành công!\n\n' +
+            '👨‍🏫 Thông tin giáo viên: 1\n' +
+            '📚 PPCT: ' + ppctPayload.length + '\n' +
+            '📅 Thời khóa biểu: ' + timetablePayload.length + '\n' +
+            '🗓️ Tuần: ' + weeksPayload.length
+        );
+
     } catch (error) {
-        console.error('❌ Lỗi chi tiết lần cuối:', error);
-        alert('❌ Lỗi đồng bộ: ' + (error.message || error.error_description || 'Lỗi không xác định.'));
+
+        console.error(
+            '❌ LỖI ĐỒNG BỘ SUPABASE:',
+            error
+        );
+
+        alert(
+            '❌ Đồng bộ thất bại!\n\n' +
+            error.message
+        );
+
     } finally {
-        syncBtn.innerHTML = '☁️ Đồng bộ lên server';
-        syncBtn.style.pointerEvents = 'auto';
-        syncBtn.style.opacity = '1';
+
+        if (syncBtn) {
+            syncBtn.innerHTML =
+                '☁️ Đồng bộ lên server';
+
+            syncBtn.style.pointerEvents = 'auto';
+            syncBtn.style.opacity = '1';
+        }
     }
 }
-
 // ================================================================
 // 5. TẢI DỮ LIỆU TỪ SUPABASE
+// CHỈ TẢI DỮ LIỆU CỦA TÀI KHOẢN ĐANG ĐĂNG NHẬP
 // ================================================================
+
 async function loadDataFromSupabase() {
+
     const client = initSupabase();
-    if (!client) return;
+
+    if (!client) {
+        loadAll();
+        return;
+    }
+
+    if (!currentUser) {
+        console.warn(
+            '⚠️ Chưa có người dùng đăng nhập.'
+        );
+        loadAll();
+        return;
+    }
+
+    const userId = currentUser.id;
+
     try {
-        const [teacherRes, ppctRes, timetableRes, weeksRes] = await Promise.all([
-            client.from('khgd_teachers').select('*'),
-            client.from('khgd_ppct').select('*'),
-            client.from('khgd_timetable').select('*'),
-            client.from('khgd_weeks').select('*')
+
+        console.log(
+            '☁️ Đang tải dữ liệu của user:',
+            userId
+        );
+
+
+        // ========================================================
+        // LẤY DỮ LIỆU CỦA ĐÚNG USER
+        // ========================================================
+
+        const [
+            teacherRes,
+            ppctRes,
+            timetableRes,
+            weeksRes
+        ] = await Promise.all([
+
+            client
+                .from('khgd_teachers')
+                .select('*')
+                .eq('user_id', userId)
+                .maybeSingle(),
+
+            client
+                .from('khgd_ppct')
+                .select('*')
+                .eq('user_id', userId)
+                .order('week', { ascending: true })
+                .order('ppct', { ascending: true }),
+
+            client
+                .from('khgd_timetable')
+                .select('*')
+                .eq('user_id', userId)
+                .order('day', { ascending: true })
+                .order('session', { ascending: true })
+                .order('period', { ascending: true }),
+
+            client
+                .from('khgd_weeks')
+                .select('*')
+                .eq('user_id', userId)
+                .order('week', { ascending: true })
         ]);
 
-        const teacher = teacherRes.data?.[0] || {};
-        const data = {
-            teacher: { unit: teacher.unit_name || '', school: teacher.school_name || '', name: teacher.teacher_name || '', subject: teacher.subject_class || '', year: teacher.sch || '' },
-            ppct: ppctRes.data || [],
-            timetable: timetableRes.data || [],
-            weeks: weeksRes.data || []
-        };
-        
-        if (data.weeks.length === 0) {
-            data.weeks = Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }));
-            data.weeks = autoGenerateWeeks(data.weeks);
+
+        // ========================================================
+        // KIỂM TRA LỖI
+        // ========================================================
+
+        if (teacherRes.error) {
+            throw new Error(
+                'Lỗi tải khgd_teachers: ' +
+                teacherRes.error.message
+            );
         }
-        
-        const localData = loadData();
-        if (data.ppct.length > 0) localData.ppct = data.ppct;
-        if (data.timetable.length > 0) localData.timetable = data.timetable;
-        localData.teacher = data.teacher;
-        localData.weeks = data.weeks;
+
+        if (ppctRes.error) {
+            throw new Error(
+                'Lỗi tải khgd_ppct: ' +
+                ppctRes.error.message
+            );
+        }
+
+        if (timetableRes.error) {
+            throw new Error(
+                'Lỗi tải khgd_timetable: ' +
+                timetableRes.error.message
+            );
+        }
+
+        if (weeksRes.error) {
+            throw new Error(
+                'Lỗi tải khgd_weeks: ' +
+                weeksRes.error.message
+            );
+        }
+
+
+        // ========================================================
+        // THÔNG TIN GIÁO VIÊN
+        // ========================================================
+
+        const teacher = teacherRes.data || null;
+
+
+        // ========================================================
+        // PPCT
+        // Giữ id để giao diện hiện tại vẫn sửa/xóa bình thường
+        // ========================================================
+
+        const ppct = (ppctRes.data || []).map(item => ({
+            id: item.id,
+            week: item.week,
+            ppct: item.ppct,
+            subject: item.subject || '',
+            grade: item.grade,
+            lesson: item.lesson || '',
+            stem: item.stem || ''
+        }));
+
+
+        // ========================================================
+        // THỜI KHÓA BIỂU
+        // ========================================================
+
+        const timetable = (timetableRes.data || []).map(item => ({
+            id: item.id,
+            day: item.day,
+            session: item.session,
+            period: item.period,
+            subject: item.subject || '',
+            grade: item.grade,
+            class: item.class || ''
+        }));
+
+
+        // ========================================================
+        // 35 TUẦN
+        // ========================================================
+
+        let weeks = (weeksRes.data || []).map(item => ({
+            week: item.week,
+            start: item.start || null,
+            end: item.end || null
+        }));
+
+
+        // Nếu tài khoản chưa có dữ liệu tuần
+        // thì tạo mặc định 35 tuần
+
+        if (weeks.length === 0) {
+
+            weeks = Array.from(
+                { length: 35 },
+                (_, i) => ({
+                    week: i + 1,
+                    start: null,
+                    end: null
+                })
+            );
+
+            weeks = autoGenerateWeeks(weeks);
+        }
+
+
+        // ========================================================
+        // TẠO DATA LOCAL
+        // QUAN TRỌNG:
+        // KHÔNG giữ dữ liệu cũ của tài khoản khác
+        // ========================================================
+
+        const localData = {
+
+            teacher: {
+                unit: teacher?.unit_name || '',
+                school: teacher?.school_name || '',
+                name: teacher?.teacher_name || '',
+                subject: teacher?.subject_class || '',
+                year: teacher?.sch || ''
+            },
+
+            ppct: ppct,
+
+            timetable: timetable,
+
+            weeks: weeks
+        };
+
+
+        // ========================================================
+        // LƯU VÀO LOCAL STORAGE
+        // ========================================================
 
         saveData(localData);
+
         loadAll();
-        console.log('✅ Đã tải dữ liệu từ Cloud thành công.');
-        document.querySelector('.toast-save-msg')?.remove();
+
+
+        console.log(
+            '========================================'
+        );
+
+        console.log(
+            '✅ ĐÃ TẢI DỮ LIỆU CLOUD'
+        );
+
+        console.log(
+            'User:',
+            userId
+        );
+
+        console.log(
+            'PPCT:',
+            ppct.length
+        );
+
+        console.log(
+            'TKB:',
+            timetable.length
+        );
+
+        console.log(
+            'Weeks:',
+            weeks.length
+        );
+
+        console.log(
+            '========================================'
+        );
+
     } catch (error) {
-        console.error('Lỗi tải dữ liệu từ Cloud:', error);
+
+        console.error(
+            '❌ Lỗi tải dữ liệu từ Supabase:',
+            error
+        );
+
+        alert(
+            '❌ Không thể tải dữ liệu từ Server!\n\n' +
+            error.message
+        );
+
         loadAll();
     }
 }
-
 // ================================================================
 // 6. HÀM CHUYỂN TAB (Đã thêm vào để hết lỗi click)
 // ================================================================
