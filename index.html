@@ -1291,6 +1291,39 @@ async function syncAllToSupabase() {
 }
 // ================================================================
 // 5. TẢI DỮ LIỆU TỪ SUPABASE
+async function fetchAllPPCT(client) {
+    const allPPCT = [];
+    const pageSize = 1000;
+
+    for (let from = 0; ; from += pageSize) {
+        const to = from + pageSize - 1;
+
+        console.log(`☁️ Tải PPCT: ${from} → ${to}`);
+
+        const { data, error } = await client
+            .from('khgd_ppct')
+            .select('*')
+            .range(from, to);
+
+        if (error) {
+            throw new Error(
+                `Lỗi tải khgd_ppct (${from}-${to}): ${error.message}`
+            );
+        }
+
+        if (data && data.length > 0) {
+            allPPCT.push(...data);
+        }
+
+        if (!data || data.length < pageSize) {
+            break;
+        }
+    }
+
+    console.log(`✅ PPCT đã tải đủ: ${allPPCT.length} dòng`);
+
+    return allPPCT;
+}
 // CHỈ TẢI DỮ LIỆU CỦA TÀI KHOẢN ĐANG ĐĂNG NHẬP
 // ================================================================
 
