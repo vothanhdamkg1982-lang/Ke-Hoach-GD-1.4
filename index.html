@@ -271,7 +271,7 @@
 
 <script>
 // ================================================================
-// 1. CẤU HÌNH SUPABASE
+// 1. CẤU HÌNH SUPABASE & LỖI 403
 // ================================================================
 const SUPABASE_URL = 'https://ohmwphdeeldmlxuuknny.supabase.co';
 // 👇 Thay thế chuỗi sau bằng Anon Key thật của bạn
@@ -1076,7 +1076,7 @@ function saveTeacherInfo() {
 }
 
 // ================================================================
-// 4. ĐỒNG BỘ LÊN SUPABASE (ĐÃ CHỐT LẠI KHÔNG LỖI TÊN CỘT)
+// 4. ĐỒNG BỘ LÊN SUPABASE (VÁ LỖI 400 & 403 CUỐI CÙNG)
 // ================================================================
 async function syncAllToSupabase() {
     if (!currentUser) {
@@ -1095,54 +1095,51 @@ async function syncAllToSupabase() {
         const data = loadData();
         console.log('Bắt đầu đồng bộ dữ liệu lên Supabase...');
 
-        // 1. Khgd_teachers (Vẫn giữ nguyên logic)
-        const teacherPayload = {
-            id: 1,
-            unit_name: data.teacher.unit || '',
-            school_name: data.teacher.school || '',
-            teacher_name: data.teacher.name || '',
-            subject_class: data.teacher.subject || '',
-            sch: data.teacher.year || ''
-        };
-
-        // 2. Khgd_ppct (Đã sửa lại tên cột để khớp với SQL vừa đổi)
-        const ppctPayload = data.ppct.map(item => ({
-            week: item.week,
-            ppct: item.ppct,
-            subject: item.subject,
-            grade: item.grade,
-            lesson: item.lesson,
-            stem: item.stem || ''
-        }));
-
-        // 3. Khgd_timetable (Tên cột giữ nguyên: day, session, period, subject, grade, class)
-        const timetablePayload = data.timetable.map(item => ({
-            day: item.day,
-            session: item.session,
-            period: item.period,
-            subject: item.subject,
-            grade: item.grade,
-            class: item.class
-        }));
-
-        // 4. Khgd_weeks (Đã sửa lại tên cột để khớp với SQL vừa đổi)
-        const weeksPayload = data.weeks.map(item => ({
-            week: item.week,
-            start: item.start,
-            end: item.end
-        }));
-
-        // Gửi dữ liệu
+        // 1. Khgd_teachers
+        const teacherPayload = { id: 1, unit_name: data.teacher.unit || '', school_name: data.teacher.school || '', teacher_name: data.teacher.name || '', subject_class: data.teacher.subject || '', sch: data.teacher.year || '' };
         await client.from('khgd_teachers').upsert(teacherPayload, { onConflict: 'id' });
-        await client.from('khgd_ppct').upsert(ppctPayload, { onConflict: 'week, ppct, subject, grade' });
-        await client.from('khgd_timetable').upsert(timetablePayload, { onConflict: 'day, period, subject, grade' });
-        await client.from('khgd_weeks').upsert(weeksPayload, { onConflict: 'week' });
+
+        // 2. Khgd_ppct (VÁ LỖI 400 DO TRÙNG DỮ LIỆU: Loại bỏ trùng lặp để không bị lỗi onConflict)
+        // Nhóm dữ liệu ppct lại để tránh gửi 2 dòng giống nhau lên Supabase
+        const uniquePPCT = [];
+        const seen = new Set();
+        data.ppct.forEach(item => {
+            const key = `${item.week}-${item.ppct}-${item.subject}-${item.grade}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                uniquePPCT.push({ week: item.week, ppct: item.ppct, subject: item.subject, grade: item.grade, lesson: item.lesson, stem: item.stem || '' });
+            }
+        });
+        // Dùng upsert với onConflict là id để Supabase tự xử lý
+        await client.from('khgd_ppct').upsert(uniquePPCT, { onConflict: 'id' });
+
+        // 3. Khgd_timetable (VÁ LỖI 400: Thêm id tạm để onConflict id không bị lỗi)
+        const timetablePayload = data.timetable.map((item, index) => ({ 
+            id: 100000 + index, 
+            day: item.day, 
+            session: item.session, 
+            period: item.period, 
+            subject: item.subject, 
+            grade: item.grade, 
+            class: item.class 
+        }));
+        await client.from('khgd_timetable').upsert(timetablePayload, { onConflict: 'id' });
+
+        // 4. Khgd_weeks (VÁ LỖI 400: Chỉ gửi dữ liệu weeks khi có đủ 35 tuần)
+        let weeksPayload = data.weeks;
+        if (weeksPayload.length === 0) {
+            weeksPayload = Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }));
+            weeksPayload = autoGenerateWeeks(weeksPayload);
+        }
+        // Loại bỏ các dòng bị null/undefined để tránh lỗi 400
+        const cleanWeeks = weeksPayload.filter(w => w.week !== null && w.week !== undefined);
+        await client.from('khgd_weeks').upsert(cleanWeeks, { onConflict: 'week' });
 
         alert('☁️ Đã đồng bộ dữ liệu lên Server thành công!');
         console.log('Đồng bộ hoàn tất.');
     } catch (error) {
         console.error('❌ Lỗi chi tiết lần cuối:', error);
-        alert('❌ Lỗi đồng bộ: ' + (error.message || error.error_description || 'Lỗi không xác định.'));
+        alert('❌ Lỗi đồng bộ: ' + (error.message || error.error_description || 'Lỗi không xác định. Xem Console F12 chi tiết.'));
     } finally {
         syncBtn.innerHTML = '☁️ Đồng bộ lên server';
         syncBtn.style.pointerEvents = 'auto';
@@ -1166,10 +1163,7 @@ async function loadDataFromSupabase() {
 
         const teacher = teacherRes.data?.[0] || {};
         const data = {
-            teacher: {
-                unit: teacher.unit_name || '', school: teacher.school_name || '',
-                name: teacher.teacher_name || '', subject: teacher.subject_class || '', year: teacher.sch || ''
-            },
+            teacher: { unit: teacher.unit_name || '', school: teacher.school_name || '', name: teacher.teacher_name || '', subject: teacher.subject_class || '', year: teacher.sch || '' },
             ppct: ppctRes.data || [],
             timetable: timetableRes.data || [],
             weeks: weeksRes.data || []
