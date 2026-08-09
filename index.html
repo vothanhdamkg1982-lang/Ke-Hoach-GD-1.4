@@ -1376,41 +1376,84 @@ async function loadDataFromSupabase() {
         // LẤY DỮ LIỆU CỦA ĐÚNG USER
         // ========================================================
 
-        const [
-            teacherRes,
-            ppctRes,
-            timetableRes,
-            weeksRes
-        ] = await Promise.all([
+    const [
+    teacherRes,
+    ppctRes,
+    timetableRes,
+    weeksRes
+] = await Promise.all([
 
-            client
-                .from('khgd_teachers')
-                .select('*')
-                .eq('user_id', userId)
-                .maybeSingle(),
+    client
+        .from('khgd_teachers')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle(),
 
-            client
-                .from('khgd_ppct')
-                .select('*')
-                .eq('user_id', userId)
-                .order('week', { ascending: true })
-                .order('ppct', { ascending: true }),
+    // PPCT: tải theo từng trang 1.000 dòng
+    (async () => {
+        try {
+            const data = await fetchAllPPCT(client, userId);
 
-            client
-                .from('khgd_timetable')
-                .select('*')
-                .eq('user_id', userId)
-                .order('day', { ascending: true })
-                .order('session', { ascending: true })
-                .order('period', { ascending: true }),
+            return {
+                data: data,
+                error: null
+            };
+        } catch (error) {
+            return {
+                data: null,
+                error: error
+            };
+        }
+    })(),
 
-            client
-                .from('khgd_weeks')
-                .select('*')
-                .eq('user_id', userId)
-                .order('week', { ascending: true })
-        ]);
+    client
+        .from('khgd_timetable')
+        .select('*')
+        .eq('user_id', userId)
+        .order('day', { ascending: true })
+        .order('session', { ascending: true })
+        .order('period', { ascending: true }),
 
+    client
+        .from('khgd_weeks')
+        .select('*')
+        .eq('user_id', userId)
+        .order('week', { ascending: true })
+]);
+async function fetchAllPPCT(client, userId) {
+    const allPPCT = [];
+    const pageSize = 1000;
+
+    for (let from = 0; ; from += pageSize) {
+        const to = from + pageSize - 1;
+
+        console.log(`☁️ Tải PPCT: ${from} → ${to}`);
+
+        const { data, error } = await client
+            .from('khgd_ppct')
+            .select('*')
+            .eq('user_id', userId)
+            .range(from, to);
+
+        if (error) {
+            throw new Error(
+                `Lỗi tải khgd_ppct (${from}-${to}): ${error.message}`
+            );
+        }
+
+        if (data && data.length > 0) {
+            allPPCT.push(...data);
+        }
+
+        if (!data || data.length < pageSize) {
+            break;
+        }
+    }
+
+    console.log(`✅ PPCT đã tải đủ: ${allPPCT.length} dòng`);
+
+    return allPPCT;
+}
 
         // ========================================================
         // KIỂM TRA LỖI
