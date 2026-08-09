@@ -1150,15 +1150,41 @@ async function syncAllToSupabase() {
         // 2. PHÂN PHỐI CHƯƠNG TRÌNH - PPCT
         // ========================================================
 
-        const ppctPayload = (data.ppct || []).map(item => ({
-            user_id: userId,
-            week: Number(item.week),
-            ppct: Number(item.ppct),
-            subject: item.subject || '',
-            grade: Number(item.grade),
-            lesson: item.lesson || '',
-            stem: item.stem || ''
-        }));
+        // 2. Khgd_ppct - đồng bộ theo từng lô 500 dòng
+const ppctPayload = data.ppct.map(item => ({
+    id: item.id,
+    user_id: currentUser.id,
+    week: item.week,
+    ppct: item.ppct,
+    subject: item.subject,
+    grade: item.grade,
+    lesson: item.lesson,
+    stem: item.stem || ''
+}));
+
+const PPCT_BATCH_SIZE = 500;
+
+for (let i = 0; i < ppctPayload.length; i += PPCT_BATCH_SIZE) {
+    const batch = ppctPayload.slice(i, i + PPCT_BATCH_SIZE);
+
+    console.log(
+        `☁️ Đồng bộ PPCT: ${i + 1} → ${i + batch.length} / ${ppctPayload.length}`
+    );
+
+    const { error } = await client
+        .from('khgd_ppct')
+        .upsert(batch, { onConflict: 'id' });
+
+    if (error) {
+        throw new Error(
+            `Lỗi đồng bộ PPCT tại dòng ${i + 1}: ${error.message}`
+        );
+    }
+}
+
+console.log(
+    `✅ Đã đồng bộ ${ppctPayload.length} dòng PPCT`
+);
 
         if (ppctPayload.length > 0) {
 
