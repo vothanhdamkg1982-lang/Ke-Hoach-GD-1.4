@@ -139,12 +139,18 @@
 <body>
 
 <!-- === HEADER AUTH === -->
+<!-- === HEADER AUTH === -->
 <header class="auth-header no-print">
+    
+    <!-- Phần này hiện khi đã đăng nhập -->
     <div id="user-info">
         <span id="user-name">Người dùng</span>
-        <button class="auth-btn logout" id="btn-logout">Đăng xuất</button>
+        <button class="auth-btn logout" id="btn-logout" onclick="window.handleLogout()">Đăng xuất</button>
     </div>
-    <button class="auth-btn login" id="btn-login">Đăng nhập Google</button>
+
+    <!-- Phần này hiện khi chưa đăng nhập (Phải đặt RA NGOÀI div user-info) -->
+    <button class="auth-btn login" id="btn-login" onclick="window.handleGoogleLogin()">Đăng nhập Google</button>
+
 </header>
 
 <div class="app">
@@ -331,9 +337,6 @@ function updateUIState(user) {
         document.getElementById('btn-sync').style.cursor = 'not-allowed';
     }
 }
-loginBtn.addEventListener('click', handleGoogleLogin);
-logoutBtn.addEventListener('click', handleLogout);
-
 // ================================================================
 // 2. DỮ LIỆU CỤC BỘ (LocalStorage)
 // ================================================================
@@ -1262,6 +1265,42 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     console.log('✅ Ứng dụng đã sẵn sàng!');
 });
+// ================================================================
+// HÀM XỬ LÝ ĐĂNG NHẬP & ĐĂNG XUẤT AN TOÀN (Dán vào cuối file)
+// ================================================================
+window.handleGoogleLogin = async function() {
+    // Đảm bảo Supabase đã được khởi tạo
+    if (!supabaseClient) {
+        if (typeof initSupabase === 'function') initSupabase();
+        if (!supabaseClient) {
+            alert("⚠️ Hệ thống đang tải, vui lòng thử lại sau 2 giây.");
+            return;
+        }
+    }
+    
+    // Đường dẫn chuyển hướng chính xác
+    const redirectURL = 'https://vothanhdamkg1982-lang.github.io/Ke-Hoach-GD-1.4/';
+    
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: redirectURL }
+    });
+    
+    if (error) {
+        console.error("Lỗi chi tiết đăng nhập:", error);
+        alert('Lỗi đăng nhập: ' + error.message);
+    }
+};
+
+window.handleLogout = async function() {
+    if (!supabaseClient) return;
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) alert('Lỗi đăng xuất: ' + error.message);
+    else { 
+        if (typeof updateUIState === 'function') updateUIState(null); 
+        if (typeof loadAll === 'function') loadAll(); 
+    }
+};
 </script>
 </body>
 </html>
