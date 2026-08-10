@@ -88,6 +88,7 @@
     .signature { display: flex; justify-content: space-around; margin-top: 40px; font-size: 14px; gap: 40px; }
     .signature > div { text-align: center; flex: 1; }
     .signature .sign-space { height: 30px; margin: 4px 0 6px 0; }
+    .section-subtitle { margin-top: 24px; margin-bottom: 16px; font-size: 18px; color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; font-weight: 700; }
     @media print {
       body { background: #fff; padding: 0; margin: 0; padding-top: 0; }
       .no-print { display: none !important; }
@@ -139,7 +140,6 @@
 <body>
 
 <!-- === HEADER AUTH === -->
-<!-- === HEADER AUTH === -->
 <header class="auth-header no-print">
     
     <!-- Phần này hiện khi đã đăng nhập -->
@@ -148,7 +148,7 @@
         <button class="auth-btn logout" id="btn-logout" onclick="window.handleLogout()">Đăng xuất</button>
     </div>
 
-    <!-- Phần này hiện khi chưa đăng nhập (Phải đặt RA NGOÀI div user-info) -->
+    <!-- Phần này hiện khi chưa đăng nhập -->
     <button class="auth-btn login" id="btn-login" onclick="window.handleGoogleLogin()">Đăng nhập Google</button>
 
 </header>
@@ -190,7 +190,7 @@
   </div>
 
   <div id="tab-info" class="tab-content">
-    <h2 style="margin-bottom:20px;font-size:22px;">👤 Thông tin giáo viên</h2>
+    <h2 style="margin-bottom:20px;font-size:22px;">👤 Thông tin giáo viên & Ban kiểm duyệt</h2>
     <div class="form-row">
       <div><label>Đơn vị quản lý</label><input id="teacherUnit" placeholder="VD: UBND Đặc khu Kiên Hải"></div>
       <div><label>Trường</label><input id="teacherSchool" placeholder="VD: Trường TH. Trần Quốc Toản"></div>
@@ -202,7 +202,45 @@
     <div class="form-row">
       <div><label>Năm học</label><input id="teacherYear" placeholder="VD: 2026 - 2027"></div>
     </div>
-    <button class="btn btn-primary" onclick="saveTeacherInfo()">💾 Lưu thông tin</button>
+
+    <h3 class="section-subtitle">🛡️ Thông tin Ban Kiểm Duyệt (Phê duyệt kế hoạch)</h3>
+    <div class="form-row">
+      <div>
+        <label>Chức danh Ban Giám Hiệu</label>
+        <select id="bghRole">
+          <option value="HIỆU TRƯỞNG">HIỆU TRƯỞNG</option>
+          <option value="P.HIỆU TRƯỞNG" selected>P.HIỆU TRƯỞNG</option>
+        </select>
+      </div>
+      <div>
+        <label>Họ và tên người duyệt (BGH)</label>
+        <input id="bghName" list="bgh_list" placeholder="VD: Nguyễn Thị Mai">
+<datalist id="bgh_list">
+  <option value="Nguyễn Thị Mai">
+  <option value="Trần Văn A">
+</datalist>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label>Chức danh Tổ chuyên môn</label>
+        <select id="toRole">
+          <option value="TỔ TRƯỞNG">TỔ TRƯỞNG</option>
+          <option value="P. TỔ TRƯỞNG" selected>P. TỔ TRƯỞNG</option>
+        </select>
+      </div>
+      <div>
+        <label>Họ và tên người duyệt (Tổ)</label>
+        <input id="toName" list="to_list" placeholder="VD: Lê Thu Hạnh">
+<datalist id="to_list">
+  <option value="Lê Thu Hạnh">
+  <option value="Phạm Văn C">
+</datalist>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveTeacherInfo()" style="margin-top:10px;">💾 Lưu thông tin</button>
     <span id="teacherMsg" style="margin-left:16px;color:#16a34a;font-weight:600;"></span>
   </div>
 
@@ -280,7 +318,6 @@
 // 1. CẤU HÌNH SUPABASE & LOGIN/LOGOUT
 // ================================================================
 const SUPABASE_URL = 'https://ohmwphdeeldmlxuuknny.supabase.co';
-// 👇 Thay thế chuỗi sau bằng Anon Key thật của bạn
 const SUPABASE_ANON_KEY = 'sb_publishable_DgxnOXel9t7woqYrfInl5Q_YogcW--c'; 
 
 let supabaseClient = null;
@@ -344,7 +381,11 @@ const STORAGE_KEY = 'khhdgd_data';
 
 function getDefaultData() {
     return {
-        teacher: { unit: '', school: '', name: '', subject: '', year: '' },
+        teacher: { 
+            unit: '', school: '', name: '', subject: '', year: '',
+            bghRole: 'P.HIỆU TRƯỞNG', bghName: 'Nguyễn Thị Mai',
+            toRole: 'P. TỔ TRƯỞNG', toName: 'Lê Thu Hạnh'
+        },
         ppct: [],
         timetable: [],
         weeks: Array.from({ length: 35 }, (_, i) => ({ week: i+1, start: null, end: null }))
@@ -359,7 +400,17 @@ function loadData() {
         saveData(def);
         return def;
     }
-    try { return JSON.parse(raw); } catch { return getDefaultData(); }
+    try { 
+        const parsed = JSON.parse(raw);
+        if (!parsed.teacher) parsed.teacher = {};
+        if (!parsed.teacher.bghRole) parsed.teacher.bghRole = 'P.HIỆU TRƯỞNG';
+        if (!parsed.teacher.bghName) parsed.teacher.bghName = 'Nguyễn Thị Mai';
+        if (!parsed.teacher.toRole) parsed.teacher.toRole = 'P. TỔ TRƯỞNG';
+        if (!parsed.teacher.toName) parsed.teacher.toName = 'Lê Thu Hạnh';
+        return parsed;
+    } catch { 
+        return getDefaultData(); 
+    }
 }
 
 function saveData(data) {
@@ -409,7 +460,7 @@ function getNextId(data) {
 }
 
 // ================================================================
-// 3. TẤT CẢ CÁC HÀM RENDER & IMPORT/EXPORT (FULL CODE)
+// 3. TẤT CẢ CÁC HÀM RENDER & IMPORT/EXPORT
 // ================================================================
 function loadTeacherInfo() {
     const data = loadData();
@@ -418,6 +469,10 @@ function loadTeacherInfo() {
     document.getElementById('teacherName').value = data.teacher.name || '';
     document.getElementById('teacherSubject').value = data.teacher.subject || '';
     document.getElementById('teacherYear').value = data.teacher.year || '';
+    document.getElementById('bghRole').value = data.teacher.bghRole || 'P.HIỆU TRƯỞNG';
+    document.getElementById('bghName').value = data.teacher.bghName || 'Nguyễn Thị Mai';
+    document.getElementById('toRole').value = data.teacher.toRole || 'P. TỔ TRƯỞNG';
+    document.getElementById('toName').value = data.teacher.toName || 'Lê Thu Hạnh';
 }
 
 let ppctPage = 0;
@@ -993,17 +1048,22 @@ function renderPlan() {
       </div>
     `;
 
+    const bghRole = teacher.bghRole || 'P.HIỆU TRƯỞNG';
+    const bghName = teacher.bghName || 'Nguyễn Thị Mai';
+    const toRole = teacher.toRole || 'P. TỔ TRƯỞNG';
+    const toName = teacher.toName || 'Lê Thu Hạnh';
+
     const signHtml = `
       <div class="signature">
         <div>
-          <div style="font-weight:700;">P.HIỆU TRƯỞNG</div>
+          <div style="font-weight:700;">${bghRole}</div>
           <div class="sign-space"></div>
-          <div style="font-size:13px;">Nguyễn Thị Mai</div>
+          <div style="font-size:13px;">${bghName}</div>
         </div>
         <div>
-          <div style="font-weight:700;">P. TỔ TRƯỞNG</div>
+          <div style="font-weight:700;">${toRole}</div>
           <div class="sign-space"></div>
-          <div style="font-size:13px;">Lê Thu Hạnh</div>
+          <div style="font-size:13px;">${toName}</div>
         </div>
         <div>
           <div style="font-weight:700;">NGƯỜI LẬP KẾ HOẠCH</div>
@@ -1072,6 +1132,10 @@ function saveTeacherInfo() {
     data.teacher.name = document.getElementById('teacherName').value.trim();
     data.teacher.subject = document.getElementById('teacherSubject').value.trim();
     data.teacher.year = document.getElementById('teacherYear').value.trim();
+    data.teacher.bghRole = document.getElementById('bghRole').value;
+    data.teacher.bghName = document.getElementById('bghName').value.trim();
+    data.teacher.toRole = document.getElementById('toRole').value;
+    data.teacher.toName = document.getElementById('toName').value.trim();
     saveData(data);
     document.getElementById('teacherMsg').textContent = '✅ Đã lưu!';
     setTimeout(() => document.getElementById('teacherMsg').textContent = '', 3000);
@@ -1079,11 +1143,7 @@ function saveTeacherInfo() {
 }
 
 // ================================================================
-// 4. ĐỒNG BỘ LÊN SUPABASE (VÁ LỖI 403/400 LẦN CUỐI)
-// ================================================================
-// ================================================================
 // 4. ĐỒNG BỘ DỮ LIỆU LÊN SUPABASE
-// PHIÊN BẢN AN TOÀN - THEO USER_ID
 // ================================================================
 
 async function syncAllToSupabase() {
@@ -1116,18 +1176,18 @@ async function syncAllToSupabase() {
         console.log('User ID:', userId);
         console.log('========================================');
 
-
-        // ========================================================
-        // 1. THÔNG TIN GIÁO VIÊN
-        // ========================================================
-
+        // 1. THÔNG TIN GIÁO VIÊN VÀ BAN KIỂM DUYỆT
         const teacherPayload = {
             user_id: userId,
             unit_name: data.teacher?.unit || '',
             school_name: data.teacher?.school || '',
             teacher_name: data.teacher?.name || '',
             subject_class: data.teacher?.subject || '',
-            sch: data.teacher?.year || ''
+            sch: data.teacher?.year || '',
+            bgh_role: data.teacher?.bghRole || 'P.HIỆU TRƯỞNG',
+            bgh_name: data.teacher?.bghName || '',
+            to_role: data.teacher?.toRole || 'P. TỔ TRƯỞNG',
+            to_name: data.teacher?.toName || ''
         };
 
         const { error: teacherError } = await client
@@ -1145,63 +1205,41 @@ async function syncAllToSupabase() {
             );
         }
 
-
-        // ========================================================
         // 2. PHÂN PHỐI CHƯƠNG TRÌNH - PPCT
-        // ========================================================
+        const ppctPayload = data.ppct.map(item => ({
+            id: item.id,
+            user_id: currentUser.id,
+            week: item.week,
+            ppct: item.ppct,
+            subject: item.subject,
+            grade: item.grade,
+            lesson: item.lesson,
+            stem: item.stem || ''
+        }));
 
-        // 2. Khgd_ppct - đồng bộ theo từng lô 500 dòng
-const ppctPayload = data.ppct.map(item => ({
-    id: item.id,
-    user_id: currentUser.id,
-    week: item.week,
-    ppct: item.ppct,
-    subject: item.subject,
-    grade: item.grade,
-    lesson: item.lesson,
-    stem: item.stem || ''
-}));
-const ids = ppctPayload.map(item => item.id);
+        const PPCT_BATCH_SIZE = 500;
 
-const uniqueIds = new Set(ids);
+        for (let i = 0; i < ppctPayload.length; i += PPCT_BATCH_SIZE) {
+            const batch = ppctPayload.slice(i, i + PPCT_BATCH_SIZE);
 
-console.log('========== KIỂM TRA ID PPCT ==========');
-console.log('Tổng số PPCT:', ppctPayload.length);
-console.log('ID duy nhất:', uniqueIds.size);
-console.log(
-    'ID trống:',
-    ids.filter(id => !id).length
-);
-console.log('======================================');
-const PPCT_BATCH_SIZE = 500;
+            console.log(
+                `☁️ Đồng bộ PPCT: ${i + 1} → ${i + batch.length} / ${ppctPayload.length}`
+            );
 
-for (let i = 0; i < ppctPayload.length; i += PPCT_BATCH_SIZE) {
-    const batch = ppctPayload.slice(i, i + PPCT_BATCH_SIZE);
+            const { error } = await client
+                .from('khgd_ppct')
+                .upsert(batch, { onConflict: 'id' });
 
-    console.log(
-        `☁️ Đồng bộ PPCT: ${i + 1} → ${i + batch.length} / ${ppctPayload.length}`
-    );
+            if (error) {
+                throw new Error(
+                    `Lỗi đồng bộ PPCT tại dòng ${i + 1}: ${error.message}`
+                );
+            }
+        }
 
-    const { error } = await client
-        .from('khgd_ppct')
-        .upsert(batch, { onConflict: 'id' });
+        console.log(`✅ Đã đồng bộ ${ppctPayload.length} dòng PPCT`);
 
-    if (error) {
-        throw new Error(
-            `Lỗi đồng bộ PPCT tại dòng ${i + 1}: ${error.message}`
-        );
-    }
-}
-
-console.log(
-    `✅ Đã đồng bộ ${ppctPayload.length} dòng PPCT`
-);
-
-        
-        // ========================================================
         // 3. THỜI KHÓA BIỂU
-        // ========================================================
-
         const timetablePayload = (data.timetable || []).map(item => ({
             user_id: userId,
             day: Number(item.day),
@@ -1213,30 +1251,23 @@ console.log(
         }));
 
         if (timetablePayload.length > 0) {
-
             const { error: timetableError } = await client
                 .from('khgd_timetable')
                 .upsert(
                     timetablePayload,
                     {
-                        onConflict:
-                            'user_id,day,session,period'
+                        onConflict: 'user_id,day,session,period'
                     }
                 );
 
             if (timetableError) {
                 throw new Error(
-                    'Lỗi khgd_timetable: ' +
-                    timetableError.message
+                    'Lỗi khgd_timetable: ' + timetableError.message
                 );
             }
         }
 
-
-        // ========================================================
         // 4. KHUNG THỜI GIAN 35 TUẦN
-        // ========================================================
-
         const weeksPayload = (data.weeks || []).map(item => ({
             user_id: userId,
             week: Number(item.week),
@@ -1245,7 +1276,6 @@ console.log(
         }));
 
         if (weeksPayload.length > 0) {
-
             const { error: weeksError } = await client
                 .from('khgd_weeks')
                 .upsert(
@@ -1257,23 +1287,13 @@ console.log(
 
             if (weeksError) {
                 throw new Error(
-                    'Lỗi khgd_weeks: ' +
-                    weeksError.message
+                    'Lỗi khgd_weeks: ' + weeksError.message
                 );
             }
         }
 
-
-        // ========================================================
-        // HOÀN TẤT
-        // ========================================================
-
         console.log('========================================');
         console.log('✅ ĐỒNG BỘ THÀNH CÔNG');
-        console.log('Teacher:', 1);
-        console.log('PPCT:', ppctPayload.length);
-        console.log('TKB:', timetablePayload.length);
-        console.log('Weeks:', weeksPayload.length);
         console.log('========================================');
 
         alert(
@@ -1285,141 +1305,20 @@ console.log(
         );
 
     } catch (error) {
-
-        console.error(
-            '❌ LỖI ĐỒNG BỘ SUPABASE:',
-            error
-        );
-
-        alert(
-            '❌ Đồng bộ thất bại!\n\n' +
-            error.message
-        );
-
+        console.error('❌ LỖI ĐỒNG BỘ SUPABASE:', error);
+        alert('❌ Đồng bộ thất bại!\n\n' + error.message);
     } finally {
-
         if (syncBtn) {
-            syncBtn.innerHTML =
-                '☁️ Đồng bộ lên server';
-
+            syncBtn.innerHTML = '☁️ Đồng bộ lên server';
             syncBtn.style.pointerEvents = 'auto';
             syncBtn.style.opacity = '1';
         }
     }
 }
+
 // ================================================================
 // 5. TẢI DỮ LIỆU TỪ SUPABASE
-async function fetchAllPPCT(client) {
-    const allPPCT = [];
-    const pageSize = 1000;
-
-    for (let from = 0; ; from += pageSize) {
-        const to = from + pageSize - 1;
-
-        console.log(`☁️ Tải PPCT: ${from} → ${to}`);
-
-        const { data, error } = await client
-            .from('khgd_ppct')
-            .select('*')
-            .range(from, to);
-
-        if (error) {
-            throw new Error(
-                `Lỗi tải khgd_ppct (${from}-${to}): ${error.message}`
-            );
-        }
-
-        if (data && data.length > 0) {
-            allPPCT.push(...data);
-        }
-
-        if (!data || data.length < pageSize) {
-            break;
-        }
-    }
-
-    console.log(`✅ PPCT đã tải đủ: ${allPPCT.length} dòng`);
-
-    return allPPCT;
-}
-// CHỈ TẢI DỮ LIỆU CỦA TÀI KHOẢN ĐANG ĐĂNG NHẬP
 // ================================================================
-
-async function loadDataFromSupabase() {
-
-    const client = initSupabase();
-
-    if (!client) {
-        loadAll();
-        return;
-    }
-
-    if (!currentUser) {
-        console.warn(
-            '⚠️ Chưa có người dùng đăng nhập.'
-        );
-        loadAll();
-        return;
-    }
-
-    const userId = currentUser.id;
-
-    try {
-
-        console.log(
-            '☁️ Đang tải dữ liệu của user:',
-            userId
-        );
-
-
-        // ========================================================
-        // LẤY DỮ LIỆU CỦA ĐÚNG USER
-        // ========================================================
-
-    const [
-    teacherRes,
-    ppctRes,
-    timetableRes,
-    weeksRes
-] = await Promise.all([
-
-    client
-        .from('khgd_teachers')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle(),
-
-    // PPCT: tải theo từng trang 1.000 dòng
-    (async () => {
-        try {
-            const data = await fetchAllPPCT(client, userId);
-
-            return {
-                data: data,
-                error: null
-            };
-        } catch (error) {
-            return {
-                data: null,
-                error: error
-            };
-        }
-    })(),
-
-    client
-        .from('khgd_timetable')
-        .select('*')
-        .eq('user_id', userId)
-        .order('day', { ascending: true })
-        .order('session', { ascending: true })
-        .order('period', { ascending: true }),
-
-    client
-        .from('khgd_weeks')
-        .select('*')
-        .eq('user_id', userId)
-        .order('week', { ascending: true })
-]);
 async function fetchAllPPCT(client, userId) {
     const allPPCT = [];
     const pageSize = 1000;
@@ -1451,54 +1350,70 @@ async function fetchAllPPCT(client, userId) {
     }
 
     console.log(`✅ PPCT đã tải đủ: ${allPPCT.length} dòng`);
-
     return allPPCT;
 }
 
-        // ========================================================
-        // KIỂM TRA LỖI
-        // ========================================================
+async function loadDataFromSupabase() {
+    const client = initSupabase();
 
-        if (teacherRes.error) {
-            throw new Error(
-                'Lỗi tải khgd_teachers: ' +
-                teacherRes.error.message
-            );
-        }
+    if (!client) {
+        loadAll();
+        return;
+    }
 
-        if (ppctRes.error) {
-            throw new Error(
-                'Lỗi tải khgd_ppct: ' +
-                ppctRes.error.message
-            );
-        }
+    if (!currentUser) {
+        console.warn('⚠️ Chưa có người dùng đăng nhập.');
+        loadAll();
+        return;
+    }
 
-        if (timetableRes.error) {
-            throw new Error(
-                'Lỗi tải khgd_timetable: ' +
-                timetableRes.error.message
-            );
-        }
+    const userId = currentUser.id;
 
-        if (weeksRes.error) {
-            throw new Error(
-                'Lỗi tải khgd_weeks: ' +
-                weeksRes.error.message
-            );
-        }
+    try {
+        console.log('☁️ Đang tải dữ liệu của user:', userId);
 
+        const [
+            teacherRes,
+            ppctRes,
+            timetableRes,
+            weeksRes
+        ] = await Promise.all([
+            client
+                .from('khgd_teachers')
+                .select('*')
+                .eq('user_id', userId)
+                .maybeSingle(),
 
-        // ========================================================
-        // THÔNG TIN GIÁO VIÊN
-        // ========================================================
+            (async () => {
+                try {
+                    const data = await fetchAllPPCT(client, userId);
+                    return { data: data, error: null };
+                } catch (error) {
+                    return { data: null, error: error };
+                }
+            })(),
+
+            client
+                .from('khgd_timetable')
+                .select('*')
+                .eq('user_id', userId)
+                .order('day', { ascending: true })
+                .order('session', { ascending: true })
+                .order('period', { ascending: true }),
+
+            client
+                .from('khgd_weeks')
+                .select('*')
+                .eq('user_id', userId)
+                .order('week', { ascending: true })
+        ]);
+
+        if (teacherRes.error) throw new Error('Lỗi tải khgd_teachers: ' + teacherRes.error.message);
+        if (ppctRes.error) throw new Error('Lỗi tải khgd_ppct: ' + ppctRes.error.message);
+        if (timetableRes.error) throw new Error('Lỗi tải khgd_timetable: ' + timetableRes.error.message);
+        if (weeksRes.error) throw new Error('Lỗi tải khgd_weeks: ' + weeksRes.error.message);
 
         const teacher = teacherRes.data || null;
-
-
-        // ========================================================
-        // PPCT
-        // Giữ id để giao diện hiện tại vẫn sửa/xóa bình thường
-        // ========================================================
 
         const ppct = (ppctRes.data || []).map(item => ({
             id: item.id,
@@ -1510,11 +1425,6 @@ async function fetchAllPPCT(client, userId) {
             stem: item.stem || ''
         }));
 
-
-        // ========================================================
-        // THỜI KHÓA BIỂU
-        // ========================================================
-
         const timetable = (timetableRes.data || []).map(item => ({
             id: item.id,
             day: item.day,
@@ -1525,118 +1435,48 @@ async function fetchAllPPCT(client, userId) {
             class: item.class || ''
         }));
 
-
-        // ========================================================
-        // 35 TUẦN
-        // ========================================================
-
         let weeks = (weeksRes.data || []).map(item => ({
             week: item.week,
             start: item.start || null,
             end: item.end || null
         }));
 
-
-        // Nếu tài khoản chưa có dữ liệu tuần
-        // thì tạo mặc định 35 tuần
-
         if (weeks.length === 0) {
-
-            weeks = Array.from(
-                { length: 35 },
-                (_, i) => ({
-                    week: i + 1,
-                    start: null,
-                    end: null
-                })
-            );
-
+            weeks = Array.from({ length: 35 }, (_, i) => ({ week: i + 1, start: null, end: null }));
             weeks = autoGenerateWeeks(weeks);
         }
 
-
-        // ========================================================
-        // TẠO DATA LOCAL
-        // QUAN TRỌNG:
-        // KHÔNG giữ dữ liệu cũ của tài khoản khác
-        // ========================================================
-
         const localData = {
-
             teacher: {
                 unit: teacher?.unit_name || '',
                 school: teacher?.school_name || '',
                 name: teacher?.teacher_name || '',
                 subject: teacher?.subject_class || '',
-                year: teacher?.sch || ''
+                year: teacher?.sch || '',
+                bghRole: teacher?.bgh_role || 'P.HIỆU TRƯỞNG',
+                bghName: teacher?.bgh_name || 'Nguyễn Thị Mai',
+                toRole: teacher?.to_role || 'P. TỔ TRƯỜNG',
+                toName: teacher?.to_name || 'Lê Thu Hạnh'
             },
-
             ppct: ppct,
-
             timetable: timetable,
-
             weeks: weeks
         };
 
-
-        // ========================================================
-        // LƯU VÀO LOCAL STORAGE
-        // ========================================================
-
         saveData(localData);
-
         loadAll();
 
-
-        console.log(
-            '========================================'
-        );
-
-        console.log(
-            '✅ ĐÃ TẢI DỮ LIỆU CLOUD'
-        );
-
-        console.log(
-            'User:',
-            userId
-        );
-
-        console.log(
-            'PPCT:',
-            ppct.length
-        );
-
-        console.log(
-            'TKB:',
-            timetable.length
-        );
-
-        console.log(
-            'Weeks:',
-            weeks.length
-        );
-
-        console.log(
-            '========================================'
-        );
+        console.log('✅ ĐÃ TẢI DỮ LIỆU CLOUD SÀN VÀ TÍCH HỢP ĐẦY ĐỦ');
 
     } catch (error) {
-
-        console.error(
-            '❌ Lỗi tải dữ liệu từ Supabase:',
-            error
-        );
-
-        alert(
-            '❌ Không thể tải dữ liệu từ Server!\n\n' +
-            error.message
-        );
-
+        console.error('❌ Lỗi tải dữ liệu từ Supabase:', error);
+        alert('❌ Không thể tải dữ liệu từ Server!\n\n' + error.message);
         loadAll();
     }
 }
+
 // ================================================================
-// 6. HÀM CHUYỂN TAB (Đã thêm vào để hết lỗi click)
+// 6. HÀM CHUYỂN TAB
 // ================================================================
 window.switchTab = function(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -1706,11 +1546,11 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     console.log('✅ Ứng dụng đã sẵn sàng!');
 });
+
 // ================================================================
-// HÀM XỬ LÝ ĐĂNG NHẬP & ĐĂNG XUẤT AN TOÀN (Dán vào cuối file)
+// HÀM XỬ LÝ ĐĂNG NHẬP & ĐĂNG XUẤT AN TOÀN
 // ================================================================
 window.handleGoogleLogin = async function() {
-    // Đảm bảo Supabase đã được khởi tạo
     if (!supabaseClient) {
         if (typeof initSupabase === 'function') initSupabase();
         if (!supabaseClient) {
@@ -1719,7 +1559,6 @@ window.handleGoogleLogin = async function() {
         }
     }
     
-    // Đường dẫn chuyển hướng chính xác
     const redirectURL = 'https://vothanhdamkg1982-lang.github.io/Ke-Hoach-GD-1.4/';
     
     const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -1742,6 +1581,29 @@ window.handleLogout = async function() {
         if (typeof loadAll === 'function') loadAll(); 
     }
 };
+// Khai báo danh sách nhân sự gợi ý
+const bghList = ["Nguyễn Thị Mai", "Trần Văn A", "Lê Văn B"];
+const toList = ["Lê Thu Hạnh", "Phạm Văn C", "Hoàng Thị D"];
+
+// Hàm nạp danh sách vào datalist
+function renderDatalistOptions(datalistId, items) {
+  const datalist = document.getElementById(datalistId);
+  if (datalist) {
+    datalist.innerHTML = items.map(name => `<option value="${name}">`).join('');
+  }
+}
+
+// Chạy hàm khi trang tải xong
+function initDatalists() {
+  renderDatalistOptions('bgh_list', bghList);
+  renderDatalistOptions('to_list', toList);
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initDatalists);
+} else {
+  initDatalists(); // Nạp ngay nếu DOM đã tải xong
+}
 </script>
 </body>
 </html>
